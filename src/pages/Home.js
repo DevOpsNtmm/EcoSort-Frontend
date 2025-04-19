@@ -64,8 +64,26 @@ function Home() {
     });
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!isRunning) {
+      try {
+        const response = await fetch('http://localhost:5050/home/system_start', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to notify backend.');
+        }
+  
+        console.log('System start notified successfully.');
+  
+      } catch (error) {
+        console.error('Error starting system:', error);
+      }
+  
       clearInterval(intervalRef.current);
       setIsRunning(true);
       setTrueClass('');
@@ -96,7 +114,7 @@ function Home() {
     setConfidence(predictedConfidence);
     setFileName(file);
 
-    if (predictedConfidence >= 50) {
+    if (predictedConfidence >= 70) {
       const newResult = {
         id: currentCount,
         fileName: file,
@@ -150,8 +168,26 @@ function Home() {
     intervalRef.current = setInterval(captureAndPredict, 3000);
   };
   
-  const handleStop = () => {
+  const handleStop = async () => {
     if (isRunning) {
+      try {
+        const response = await fetch('http://localhost:5050/home/system_stop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to notify backend.');
+        }
+  
+        console.log('System stop notified successfully.');
+  
+      } catch (error) {
+        console.error('Error stopping system:', error);
+      }
+
       setIsRunning(false);
       clearInterval(intervalRef.current);
     }
@@ -185,7 +221,7 @@ function Home() {
                 {showSavedMessage && (
                   <p style={{ color: '#2e7d32', marginTop: '10px' }}>✔️ Saved!</p>
                 )}
-                {confidence !== null && confidence < 50 && (
+                {confidence !== null && confidence < 70 && (
                   <div style={{ marginTop: '10px' }}>
                     <p style={{ color: '#d32f2f' }}>
                       ⚠️ Low confidence. Please classify manually:

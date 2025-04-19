@@ -10,18 +10,34 @@ const EditResult = () => {
   const [systemAnalysis, setSystemAnalysis] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Load entry from localStorage by ID
   useEffect(() => {
-    const storedResults = JSON.parse(localStorage.getItem('results') || '[]');
-    const target = storedResults.find((r) => String(r.id) === id);
-
-    if (target) {
-      setEntry(target);
-      setTrueClass(target.trueClass);
-      setSystemAnalysis(target.systemAnalysis);
-      setSuccess(target.success);
-    }
+    console.log("Editing result with ID:", id);
+    const fetchSingleResult = async () => {
+      try {
+        const response = await fetch(`http://localhost:5050/dashboard/get_result`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sample_id: id }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        setEntry(data.sample);
+        setTrueClass(data.sample?.image_class || "-");
+        setSystemAnalysis(data.sample?.system_analysis || "-");
+      } catch (error) {
+        console.error("Failed to fetch result:", error);
+      }
+    };
+  
+    fetchSingleResult();
   }, [id]);
+  
 
   // Save changes back to localStorage
   const handleSave = () => {

@@ -9,38 +9,69 @@ const ResultsDashboard = () => {
   const [showRetrainPopup, setShowRetrainPopup] = useState(false);
   const [accuracyText, setAccuracyText] = useState(null);
 
-  // Load saved results from localStorage on mount
   useEffect(() => {
-    const storedResults = JSON.parse(localStorage.getItem('results') || '[]');
-    setResults(storedResults);
+    const fetchResultsFromBackend = async () => {
+      try {
+        const response = await fetch("http://localhost:5050/dashboard/get_results");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        console.log("Fetched results:", data);
+
+        if (!data.samples || data.samples.length === 0) {
+          console.warn("No samples received from backend.");
+          setResults([]); // trigger empty table message
+          return;
+        }
+
+        const formattedResults = data.samples.map((item, index) => ({
+          // id: item._id || index,
+          id: item._id,
+          imageData: `http://localhost:5050/images/${encodeURIComponent(item.image_name)}`,
+          systemAnalysis: item.system_analysis,
+          confidence: parseFloat(item.confidence_percentage),
+          trueClass: item.image_class || '-',
+        }));
+
+        setResults(formattedResults);
+        console.log(formattedResults);
+
+      } catch (error) {
+        console.error("Failed to fetch results from backend:", error);
+        setResults([]);
+      }
+    };
+
+    fetchResultsFromBackend();
   }, []);
-console.log(results);
 
-const handleAccuracy = () => {
-  if (accuracyText) {
-    setAccuracyText(null); // hide if already visible
-    return;
-  }
+  const handleAccuracy = () => {
+    if (accuracyText) {
+      setAccuracyText(null); // hide if already visible
+      return;
+    }
 
-  if (results.length === 0) {
-    setAccuracyText('No results available.');
-    return;
-  }
+    if (results.length === 0) {
+      setAccuracyText('No results available.');
+      return;
+    }
 
-  // Filter only entries that have a real trueClass (not '-')
-  const relevantResults = results.filter(r => r.trueClass !== '-');
+    // Filter only entries that have a real trueClass (not '-')
+    const relevantResults = results.filter(r => r.trueClass !== '-');
 
-  if (relevantResults.length === 0) {
-    setAccuracyText('No labeled results to calculate accuracy.');
-    return;
-  }
+    if (relevantResults.length === 0) {
+      setAccuracyText('No labeled results to calculate accuracy.');
+      return;
+    }
 
-  // Count how many of those are correct
-  const correctCount = relevantResults.filter(r => r.systemAnalysis === r.trueClass).length;
+    // Count how many of those are correct
+    const correctCount = relevantResults.filter(r => r.systemAnalysis === r.trueClass).length;
 
-  const percent = ((correctCount / relevantResults.length) * 100).toFixed(2);
-  setAccuracyText(`📈 System Accuracy: ${percent}%`);
-};
+    const percent = ((correctCount / relevantResults.length) * 100).toFixed(2);
+    setAccuracyText(`📈 System Accuracy: ${percent}%`);
+  };
 
 
   // Clear the saved data
@@ -112,48 +143,54 @@ const handleAccuracy = () => {
             </tr>
           </thead>
           <tbody>
-            {results.map((entry) => (
-              <tr key={entry.id}>
-                <td style={styles.td}>
-                  {entry.imageData ? (
-                    <img
-                      src={entry.imageData}
-                      alt={`Item ${entry.id}`}
-                      style={styles.imageThumb}
-                      onClick={() => {
-                        setModalImage(entry.imageData);
-                        setIsModalOpen(true);
-                      }}
-                    />
-                  ) : (
-                    'No Image'
-                  )}
-                </td>
-                <td style={styles.td}>{entry.systemAnalysis}</td>
-                <td
-                  style={{
-                    ...styles.td,
-                    color:
-                      entry.confidence != null && entry.confidence >= 50 ? '#2e7d32' : '#d32f2f',
-                    fontWeight: 'bold',
-                  }}
-              >
-                {entry.confidence != null ? `${entry.confidence.toFixed(1)}%` : '—'}
-              </td>
-
-                <td style={styles.td}>{entry.trueClass}</td>
-                <td style={styles.td}>
-                  {entry.systemAnalysis === entry.trueClass
-                    ? '✅'
-                    : entry.trueClass === '-'
-                    ? "-"
-                    : '❌'}
-                </td>
-                <td style={styles.td}>
-                  <a href={`/edit/${entry.id}`} style={styles.editLink}>Edit</a>
+            {results.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '20px', fontStyle: 'italic' }}>
+                  No results found.
                 </td>
               </tr>
-            ))}
+            ) : (
+              results.map((entry) => (
+                <tr key={entry.id}>
+                  <td style={styles.td}>
+                    {entry.imageData ? (
+                      <img
+                        src={entry.imageData}
+                        alt={`Item ${entry.id}`}
+                        style={styles.imageThumb}
+                        onClick={() => {
+                          setModalImage(entry.imageData);
+                          setIsModalOpen(true);
+                        }}
+                      />
+                    ) : (
+                      'No Image'
+                    )}
+                  </td>
+                  <td style={styles.td}>{entry.systemAnalysis}</td>
+                  <td
+                    style={{
+                      ...styles.td,
+                      color: entry.confidence != null && entry.confidence >= 70 ? '#2e7d32' : '#d32f2f',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {entry.confidence != null ? `${entry.confidence.toFixed(1)}%` : '—'}
+                  </td>
+                  <td style={styles.td}>{entry.trueClass}</td>
+                  <td style={styles.td}>
+                    {entry.systemAnalysis === entry.trueClass
+                      ? '✅'
+                      : entry.trueClass === '-'
+                        ? "-"
+                        : '❌'}
+                  </td>
+                  <td style={styles.td}>
+                    <a href={`/edit/${entry.id}`} style={styles.editLink}>Edit</a>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -164,7 +201,7 @@ const handleAccuracy = () => {
           </div>
         </div>
       )}
-    </div>  
+    </div>
   );
 };
 
@@ -206,7 +243,7 @@ const styles = {
     maxWidth: '100%',
     maxHeight: '80vh',
     borderRadius: '4px',
-  },  
+  },
   title: {
     textAlign: 'center',
     color: '#1565c0',
