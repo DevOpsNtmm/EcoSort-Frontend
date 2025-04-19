@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Webcam from 'react-webcam';
 import { useContext } from 'react';
 import { UNSAFE_NavigationContext } from 'react-router-dom';
 
@@ -11,7 +10,6 @@ function Home() {
 
   const counterRef = useRef(counter);
   const intervalRef = useRef(null);
-  const webcamRef = useRef(null);
 
   const [blockMessageVisible, setBlockMessageVisible] = useState(false);
   const [dropdownDisabled, setDropdownDisabled] = useState(false);
@@ -92,47 +90,39 @@ function Home() {
   };
 
   const captureAndPredict = async () => {
-    if (!webcamRef.current) {
-      console.warn("⚠️ Webcam not available. Skipping capture.");
-      return;
+    try {
+      const response = await fetch('http://localhost:5050/home/evaluate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to get prediction from backend');
+      }
+  
+      const data = await response.json();
+  
+      // Update the state with prediction results from backend
+      setSystemAnalysis(data.label);
+      setFileName(data.image_name);
+      const confidenceValue = parseFloat(data.confidence);
+      setConfidence(confidenceValue); 
+      
+      // If confidence is low, pause for manual intervention
+      if (confidenceValue < 70) {
+        pausePrediction();
+      }
+  
+      incrementCounter(); // continue to track image index or attempts if needed
+  
+    } catch (error) {
+      console.error('Error capturing and predicting:', error);
+      // You can add a UI message here if needed
     }
-    const imageSrc = webcamRef.current.getScreenshot();
-    if (!imageSrc) return;
-
-    setCapturedImage(imageSrc);
-
-    // Simulate a random prediction
-    const classes = ['Paper', 'Plastic', 'Other'];
-    const predictedClass = classes[Math.floor(Math.random() * classes.length)];
-    const predictedConfidence = Math.floor(Math.random() * 100);
-
-    const currentCount = counterRef.current;
-    const file = `Image${currentCount}.png`;
-
-    setItemNumber(currentCount);
-    setSystemAnalysis(predictedClass);
-    setConfidence(predictedConfidence);
-    setFileName(file);
-
-    if (predictedConfidence >= 70) {
-      const newResult = {
-        id: currentCount,
-        fileName: file,
-        systemAnalysis: predictedClass,
-        trueClass: '-',
-        confidence: predictedConfidence,
-        time: new Date().toLocaleString(),
-        imageData: imageSrc,
-      };
-
-      const storedResults = JSON.parse(localStorage.getItem('results') || '[]');
-      localStorage.setItem('results', JSON.stringify([...storedResults, newResult]));
-    } else {
-      pausePrediction();
-    }
-
-    incrementCounter();
   };
+  
 
   const pausePrediction = () => {
     setDropdownDisabled(false);
@@ -202,17 +192,7 @@ function Home() {
       ) : (
         <div style={styles.resultSection}>
           <div style={styles.card}>
-            <Webcam
-              ref={webcamRef}
-              audio={false}
-              screenshotFormat="image/png"
-              videoConstraints={{
-                width: 320,
-                height: 160,
-                facingMode: 'environment',
-              }}
-              style={styles.image}
-            />
+            {/* HERE WAS THE CAMERA VIDEO STREAING. YOU SHOULD INTEGRATE THE IMAGE PRESENTATION HERE */}
 
             {itemNumber !== null ? (
               <>
