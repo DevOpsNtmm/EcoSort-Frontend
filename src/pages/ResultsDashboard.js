@@ -8,6 +8,7 @@ const ResultsDashboard = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [showRetrainPopup, setShowRetrainPopup] = useState(false);
   const [accuracyText, setAccuracyText] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchResultsFromBackend = async () => {
@@ -85,14 +86,45 @@ const ResultsDashboard = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}> EcoSort Results Dashboard</h2>
+      <h2 style={styles.title}>Results Dashboard</h2>
 
       {/* Action Buttons */}
       <div style={styles.buttonRow}>
-        <button onClick={() => setShowPopup(true)} style={styles.actionButton}>🔄 Reset</button>
-        <button onClick={() => setShowRetrainPopup(true)} style={styles.actionButton}>🧠 Retrain</button>
-        <button onClick={handleAccuracy} style={styles.actionButton}>📏 Accuracy</button>
-        <button onClick={handleClear} style={styles.clearButton}>🗑️ Clear</button>
+        <button onClick={handleAccuracy} style={styles.accuracyButton}>📊 Model Accuracy</button>
+        <div style={styles.menuContainer}>
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} style={styles.menuButton}>⋮</button>
+          {isMenuOpen && (
+            <div style={styles.menuDropdown}>
+              <button 
+                onClick={() => {
+                  setShowRetrainPopup(true);
+                  setIsMenuOpen(false);
+                }} 
+                style={styles.menuItem}
+              >
+                Retrain
+              </button>
+              <button 
+                onClick={() => {
+                  setShowPopup(true);
+                  setIsMenuOpen(false);
+                }} 
+                style={styles.menuItem}
+              >
+                Reset Model
+              </button>
+              <button 
+                onClick={() => {
+                  handleClear();
+                  setIsMenuOpen(false);
+                }} 
+                style={styles.deleteMenuItem}
+              >
+                Delete All
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Accuracy display (click toggle only, no X) */}
@@ -145,13 +177,13 @@ const ResultsDashboard = () => {
           <tbody>
             {results.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '20px', fontStyle: 'italic' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '20px', fontStyle: 'italic', color: '#64748b' }}>
                   No results found.
                 </td>
               </tr>
             ) : (
               results.map((entry) => (
-                <tr key={entry.id}>
+                <tr key={entry.id} style={styles.tr}>
                   <td style={styles.td}>
                     {entry.imageData ? (
                       <img
@@ -245,18 +277,31 @@ const styles = {
     borderRadius: '4px',
   },
   title: {
-    textAlign: 'center',
     color: '#1565c0',
-    fontSize: '28px',
+    fontSize: '20px',
     fontWeight: 'bold',
     marginBottom: '25px',
   },
+  accuracyButton: {
+    backgroundColor: '#ffffff',
+    color: '#0d47a1',
+    border: '1px solid #bbdefb',
+    padding: '10px 16px',
+    fontSize: '15px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
   buttonRow: {
     display: 'flex',
-    justifyContent: 'center',
-    gap: '12px',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: '25px',
     flexWrap: 'wrap',
+    gap: '12px',
   },
   actionButton: {
     backgroundColor: '#1976d2',
@@ -268,9 +313,9 @@ const styles = {
     cursor: 'pointer',
   },
   clearButton: {
-    backgroundColor: '#d32f2f',
-    color: '#fff',
-    border: 'none',
+    backgroundColor: '#ffffff',
+    color: '#d32f2f',
+    border: '2px solid #ef9a9a',
     padding: '10px 16px',
     fontSize: '15px',
     borderRadius: '6px',
@@ -291,28 +336,102 @@ const styles = {
   },
   table: {
     width: '100%',
-    borderCollapse: 'collapse',
+    borderCollapse: 'separate',
+    borderSpacing: '0',
     backgroundColor: '#ffffff',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    borderRadius: '8px',
+    overflow: 'hidden',
   },
   th: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: '#f1f5f9',
     color: '#0d47a1',
-    padding: '12px',
-    border: '1px solid #ccc',
-    fontWeight: 'bold',
+    padding: '14px',
+    borderBottom: '1px solid #e2e8f0',
+    fontWeight: '600',
+    fontSize: '14px',
+    textTransform: 'none',
   },
   td: {
-    padding: '10px',
-    border: '1px solid #eee',
+    padding: '12px 14px',
+    borderBottom: '1px solid #e2e8f0',
     textAlign: 'center',
-    fontSize: '15px',
+    fontSize: '14px',
+    color: '#334155',
+  },
+  tr: {
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+      backgroundColor: '#f8fafc',
+    },
   },
   editLink: {
     color: '#1976d2',
     textDecoration: 'none',
     fontWeight: 'bold',
-  }
+  },
+  centerButton: {
+    position: 'absolute',
+    left: '50%',
+    transform: 'translateX(-50%)',
+  },
+  menuContainer: {
+    position: 'relative',
+  },
+  menuButton: {
+    backgroundColor: '#ffffff',
+    color: '#0d47a1',
+    border: '1px solid #bbdefb',
+    padding: '10px 16px',
+    fontSize: '20px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px',
+    height: '40px',
+  },
+  menuDropdown: {
+    position: 'absolute',
+    right: 0,
+    top: '100%',
+    backgroundColor: '#ffffff',
+    border: '1px solid #bbdefb',
+    borderRadius: '6px',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+    minWidth: '150px',
+    zIndex: 1000,
+  },
+  menuItem: {
+    width: '100%',
+    padding: '10px 16px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    color: '#0d47a1',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+      backgroundColor: '#e3f2fd',
+    },
+  },
+  deleteMenuItem: {
+    width: '100%',
+    padding: '10px 16px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    color: '#d32f2f',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+      backgroundColor: '#ffebee',
+    },
+  },
 };
 
 export default ResultsDashboard;

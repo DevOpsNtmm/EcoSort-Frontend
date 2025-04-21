@@ -195,7 +195,7 @@ function Home() {
 
   return (
     <div style={styles.page}>
-      <h2 style={styles.title}>🚮 EcoSort | Smart Trash Classifier</h2>
+      <h2 style={styles.title}>♻️ EcoSort | Smart Trash Classifier</h2>
 
       {!isRunning ? (
         <button onClick={handleStart} style={styles.startButton}>▶ Start Classification</button>
