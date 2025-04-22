@@ -70,9 +70,13 @@ const ResultsDashboard = () => {
   
 
   // Clear the saved data
-  const handleClear = () => {
+  const handleClear = async () => {
     localStorage.removeItem('results');
     sessionStorage.removeItem('counter');
+    const response = await fetch("http://localhost:5050/dashboard/samples", {method: "DELETE"});
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     setResults([]);
     setAccuracyText(null); // reset accuracy text
     alert('All results have been cleared.');

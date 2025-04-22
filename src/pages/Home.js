@@ -108,7 +108,9 @@ function Home() {
       setSystemAnalysis(data.label);
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
-      setConfidence(confidenceValue); 
+      setConfidence(confidenceValue);
+      setItemNumber(data.inserted_id);
+      setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
       
       // If confidence is low, pause for manual intervention
       if (confidenceValue < 70) {
@@ -119,7 +121,6 @@ function Home() {
   
     } catch (error) {
       console.error('Error capturing and predicting:', error);
-      // You can add a UI message here if needed
     }
   };
   
@@ -130,7 +131,7 @@ function Home() {
     console.log('🛑 Prediction paused due to low confidence.');
   };
 
-  const handleManualSave = () => {
+  const handleManualSave = async () => {
     if (!trueClass) {
       alert('⚠️ Please select a classification before saving.');
       return;
@@ -148,6 +149,14 @@ function Home() {
   
     const storedResults = JSON.parse(localStorage.getItem('results') || '[]');
     localStorage.setItem('results', JSON.stringify([...storedResults, manualResult]));
+
+    const response = await fetch(`http://localhost:5050/dashboard/results/${itemNumber}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ trueClass, systemAnalysis }),
+    });
   
     setDropdownDisabled(true);
     setTrueClass('');
@@ -192,7 +201,13 @@ function Home() {
       ) : (
         <div style={styles.resultSection}>
           <div style={styles.card}>
-            {/* HERE WAS THE CAMERA VIDEO STREAING. YOU SHOULD INTEGRATE THE IMAGE PRESENTATION HERE */}
+            {capturedImage && (
+              <img
+                src={capturedImage}
+                alt="Captured item"
+                style={styles.image}
+              />
+            )}
 
             {itemNumber !== null ? (
               <>
