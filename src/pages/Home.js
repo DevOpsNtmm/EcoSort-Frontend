@@ -8,7 +8,6 @@ function Home() {
     return stored ? parseInt(stored, 10) : 1;
   });
 
-  const counterRef = useRef(counter);
   const intervalRef = useRef(null);
 
   const [blockMessageVisible, setBlockMessageVisible] = useState(false);
@@ -18,14 +17,9 @@ function Home() {
   const [itemNumber, setItemNumber] = useState(null);
   const [systemAnalysis, setSystemAnalysis] = useState('');
   const [confidence, setConfidence] = useState(null);
-  const [fileName, setFileName] = useState('');
   const [trueClass, setTrueClass] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
-
-  useEffect(() => {
-    localStorage.setItem('counter', counter);
-    counterRef.current = counter;
-  }, [counter]);
+  const [fileName, setFileName] = useState('');
 
   // Block navigation if the system is running
   useBlocker(() => {
@@ -54,12 +48,8 @@ function Home() {
     };
   }, [isRunning]);
 
-  const incrementCounter = () => {
-    setCounter((prev) => {
-      const next = prev + 1;
-      counterRef.current = next;
-      return next;
-    });
+  const runPredictionLoop = async () => {
+    await captureAndPredict(); // Let captureAndPredict decide whether to continue
   };
 
   const handleStart = async () => {
@@ -82,14 +72,14 @@ function Home() {
         console.error('Error starting system:', error);
       }
   
-      clearInterval(intervalRef.current);
       setIsRunning(true);
       setTrueClass('');
-      intervalRef.current = setInterval(captureAndPredict, 3000);
+      runPredictionLoop();
     }
   };
 
   const captureAndPredict = async () => {
+    console.log('Running prediction...');
     try {
       const response = await fetch('http://localhost:5050/home/evaluate', {
         method: 'POST',
@@ -104,30 +94,28 @@ function Home() {
   
       const data = await response.json();
   
-      // Update the state with prediction results from backend
       setSystemAnalysis(data.label);
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
       setConfidence(confidenceValue);
       setItemNumber(data.inserted_id);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
-      
-      // If confidence is low, pause for manual intervention
-      if (confidenceValue < 70) {
-        pausePrediction();
-      }
   
-      incrementCounter(); // continue to track image index or attempts if needed
+      if (confidenceValue < 90) {
+        pausePrediction(); // Stop the loop
+      } else {
+        intervalRef.current = setTimeout(captureAndPredict, 3000); // Schedule next only if confidence is good
+      }
   
     } catch (error) {
       console.error('Error capturing and predicting:', error);
     }
   };
-  
+    
 
   const pausePrediction = () => {
+    clearTimeout(intervalRef.current);
     setDropdownDisabled(false);
-    clearInterval(intervalRef.current);
     console.log('🛑 Prediction paused due to low confidence.');
   };
 
@@ -137,36 +125,40 @@ function Home() {
       return;
     }
   
-    const manualResult = {
-      id: itemNumber,
-      fileName: fileName,
-      systemAnalysis: systemAnalysis,
-      trueClass: trueClass,
-      confidence: confidence,
-      time: new Date().toLocaleString(),
-      imageData: capturedImage,
-    };
+    try {
+      const response = await fetch(`http://localhost:5050/dashboard/results/${itemNumber}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          trueClass,
+          systemAnalysis,
+        }),
+      });
   
-    const storedResults = JSON.parse(localStorage.getItem('results') || '[]');
-    localStorage.setItem('results', JSON.stringify([...storedResults, manualResult]));
-
-    const response = await fetch(`http://localhost:5050/dashboard/results/${itemNumber}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ trueClass, systemAnalysis }),
-    });
+      if (!response.ok) {
+        throw new Error(`Failed to update: ${response.statusText}`);
+      }
+  
+      console.log('True class updated successfully');
+    } catch (error) {
+      console.error('Error updating true class:', error);
+    }
   
     setDropdownDisabled(true);
     setTrueClass('');
     setShowSavedMessage(true);
+    
+    if (isRunning) {
+      clearTimeout(intervalRef.current); // just in case a previous timeout exists
+      runPredictionLoop(); // resume the loop immediately
+    }
+
+    setTimeout(() => setShowSavedMessage(false), 7600);
   
-    setTimeout(() => setShowSavedMessage(false), 3000);
-  
-    intervalRef.current = setInterval(captureAndPredict, 3000);
   };
-  
+
   const handleStop = async () => {
     if (isRunning) {
       try {
@@ -188,7 +180,7 @@ function Home() {
       }
 
       setIsRunning(false);
-      clearInterval(intervalRef.current);
+      clearTimeout(intervalRef.current);
     }
   };
 
@@ -216,7 +208,7 @@ function Home() {
                 {showSavedMessage && (
                   <p style={{ color: '#2e7d32', marginTop: '10px' }}>✔️ Saved!</p>
                 )}
-                {confidence !== null && confidence < 70 && (
+                {confidence !== null && confidence < 90 && (
                   <div style={{ marginTop: '10px' }}>
                     <p style={{ color: '#d32f2f' }}>
                       ⚠️ Low confidence. Please classify manually:
