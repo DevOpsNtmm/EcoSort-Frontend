@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Webcam from 'react-webcam';
 import { useContext } from 'react';
 import { UNSAFE_NavigationContext } from 'react-router-dom';
 
@@ -9,9 +8,7 @@ function Home() {
     return stored ? parseInt(stored, 10) : 1;
   });
 
-  const counterRef = useRef(counter);
   const intervalRef = useRef(null);
-  const webcamRef = useRef(null);
 
   const [blockMessageVisible, setBlockMessageVisible] = useState(false);
   const [dropdownDisabled, setDropdownDisabled] = useState(false);
@@ -20,14 +17,9 @@ function Home() {
   const [itemNumber, setItemNumber] = useState(null);
   const [systemAnalysis, setSystemAnalysis] = useState('');
   const [confidence, setConfidence] = useState(null);
-  const [fileName, setFileName] = useState('');
   const [trueClass, setTrueClass] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
-
-  useEffect(() => {
-    localStorage.setItem('counter', counter);
-    counterRef.current = counter;
-  }, [counter]);
+  const [fileName, setFileName] = useState('');
 
   // Block navigation if the system is running
   useBlocker(() => {
@@ -56,12 +48,8 @@ function Home() {
     };
   }, [isRunning]);
 
-  const incrementCounter = () => {
-    setCounter((prev) => {
-      const next = prev + 1;
-      counterRef.current = next;
-      return next;
-    });
+  const runPredictionLoop = async () => {
+    await captureAndPredict(); // Let captureAndPredict decide whether to continue
   };
 
   const handleStart = async () => {
@@ -84,90 +72,93 @@ function Home() {
         console.error('Error starting system:', error);
       }
   
-      clearInterval(intervalRef.current);
       setIsRunning(true);
       setTrueClass('');
-      intervalRef.current = setInterval(captureAndPredict, 3000);
+      runPredictionLoop();
     }
   };
 
   const captureAndPredict = async () => {
-    if (!webcamRef.current) {
-      console.warn("⚠️ Webcam not available. Skipping capture.");
-      return;
+    console.log('Running prediction...');
+    try {
+      const response = await fetch('http://localhost:5050/home/evaluate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to get prediction from backend');
+      }
+  
+      const data = await response.json();
+  
+      setSystemAnalysis(data.label);
+      setFileName(data.image_name);
+      const confidenceValue = parseFloat(data.confidence);
+      setConfidence(confidenceValue);
+      setItemNumber(data.inserted_id);
+      setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
+  
+      if (confidenceValue < 90) {
+        pausePrediction(); // Stop the loop
+      } else {
+        intervalRef.current = setTimeout(captureAndPredict, 3000); // Schedule next only if confidence is good
+      }
+  
+    } catch (error) {
+      console.error('Error capturing and predicting:', error);
     }
-    const imageSrc = webcamRef.current.getScreenshot();
-    if (!imageSrc) return;
-
-    setCapturedImage(imageSrc);
-
-    // Simulate a random prediction
-    const classes = ['Paper', 'Plastic', 'Other'];
-    const predictedClass = classes[Math.floor(Math.random() * classes.length)];
-    const predictedConfidence = Math.floor(Math.random() * 100);
-
-    const currentCount = counterRef.current;
-    const file = `Image${currentCount}.png`;
-
-    setItemNumber(currentCount);
-    setSystemAnalysis(predictedClass);
-    setConfidence(predictedConfidence);
-    setFileName(file);
-
-    if (predictedConfidence >= 70) {
-      const newResult = {
-        id: currentCount,
-        fileName: file,
-        systemAnalysis: predictedClass,
-        trueClass: '-',
-        confidence: predictedConfidence,
-        time: new Date().toLocaleString(),
-        imageData: imageSrc,
-      };
-
-      const storedResults = JSON.parse(localStorage.getItem('results') || '[]');
-      localStorage.setItem('results', JSON.stringify([...storedResults, newResult]));
-    } else {
-      pausePrediction();
-    }
-
-    incrementCounter();
   };
+    
 
   const pausePrediction = () => {
+    clearTimeout(intervalRef.current);
     setDropdownDisabled(false);
-    clearInterval(intervalRef.current);
     console.log('🛑 Prediction paused due to low confidence.');
   };
 
-  const handleManualSave = () => {
+  const handleManualSave = async () => {
     if (!trueClass) {
       alert('⚠️ Please select a classification before saving.');
       return;
     }
   
-    const manualResult = {
-      id: itemNumber,
-      fileName: fileName,
-      systemAnalysis: systemAnalysis,
-      trueClass: trueClass,
-      confidence: confidence,
-      time: new Date().toLocaleString(),
-      imageData: capturedImage,
-    };
+    try {
+      const response = await fetch(`http://localhost:5050/dashboard/results/${itemNumber}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          trueClass,
+          systemAnalysis,
+        }),
+      });
   
-    const storedResults = JSON.parse(localStorage.getItem('results') || '[]');
-    localStorage.setItem('results', JSON.stringify([...storedResults, manualResult]));
+      if (!response.ok) {
+        throw new Error(`Failed to update: ${response.statusText}`);
+      }
+  
+      console.log('True class updated successfully');
+    } catch (error) {
+      console.error('Error updating true class:', error);
+    }
   
     setDropdownDisabled(true);
     setTrueClass('');
     setShowSavedMessage(true);
+    
+    if (isRunning) {
+      clearTimeout(intervalRef.current); // just in case a previous timeout exists
+      runPredictionLoop(); // resume the loop immediately
+    }
+
+    setTimeout(() => setShowSavedMessage(false), 7600);
   
-    setTimeout(() => setShowSavedMessage(false), 3000);
-  
-    intervalRef.current = setInterval(captureAndPredict, 3000);
   };
-  
+
   const handleStop = async () => {
     if (isRunning) {
       try {
@@ -189,7 +180,7 @@ function Home() {
       }
 
       setIsRunning(false);
-      clearInterval(intervalRef.current);
+      clearTimeout(intervalRef.current);
     }
   };
 
@@ -202,17 +193,13 @@ function Home() {
       ) : (
         <div style={styles.resultSection}>
           <div style={styles.card}>
-            <Webcam
-              ref={webcamRef}
-              audio={false}
-              screenshotFormat="image/png"
-              videoConstraints={{
-                width: 320,
-                height: 160,
-                facingMode: 'environment',
-              }}
-              style={styles.image}
-            />
+            {capturedImage && (
+              <img
+                src={capturedImage}
+                alt="Captured item"
+                style={styles.image}
+              />
+            )}
 
             {itemNumber !== null ? (
               <>
@@ -221,7 +208,7 @@ function Home() {
                 {showSavedMessage && (
                   <p style={{ color: '#2e7d32', marginTop: '10px' }}>✔️ Saved!</p>
                 )}
-                {confidence !== null && confidence < 70 && (
+                {confidence !== null && confidence < 90 && (
                   <div style={{ marginTop: '10px' }}>
                     <p style={{ color: '#d32f2f' }}>
                       ⚠️ Low confidence. Please classify manually:

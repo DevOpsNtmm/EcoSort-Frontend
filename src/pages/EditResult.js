@@ -14,12 +14,10 @@ const EditResult = () => {
     console.log("Editing result with ID:", id);
     const fetchSingleResult = async () => {
       try {
-        const response = await fetch(`http://localhost:5050/dashboard/get_result`, {
-          method: "POST",
+        const response = await fetch(`http://localhost:5050/dashboard/results/${id}`, {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ sample_id: id }),
         });
   
         if (!response.ok) {
@@ -40,13 +38,23 @@ const EditResult = () => {
   
 
   // Save changes back to localStorage
-  const handleSave = () => {
+  const handleSave = async () => {
     const storedResults = JSON.parse(localStorage.getItem('results') || '[]');
     const updated = storedResults.map((r) =>
       String(r.id) === id
         ? { ...r, trueClass, systemAnalysis, success }
         : r
     ); 
+    const response = await fetch(`http://localhost:5050/dashboard/results/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ trueClass, systemAnalysis, success }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     localStorage.setItem('results', JSON.stringify(updated));
     navigate('/dashboard');
   };
@@ -55,12 +63,12 @@ const EditResult = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>✏️ Edit Result: ID {entry.id}</h2>
-      {entry.imageData && (
+      <h2 style={styles.title}>✏️ Edit Result: ID {entry.image_name}</h2>
+      {entry.file_path && (
         <div style={styles.imageContainer}>
           <img
-            src={entry.imageData}
-            alt={`Item ${entry.id}`}
+            src={`http://localhost:5050/images/${encodeURIComponent(entry.image_name)}`}
+            alt={`Item ${entry.image_name}`}
             style={styles.imagePreview}
           />
         </div>

@@ -28,7 +28,6 @@ const ResultsDashboard = () => {
         }
 
         const formattedResults = data.samples.map((item, index) => ({
-          // id: item._id || index,
           id: item._id,
           imageData: `http://localhost:5050/images/${encodeURIComponent(item.image_name)}`,
           systemAnalysis: item.system_analysis,
@@ -48,37 +47,37 @@ const ResultsDashboard = () => {
     fetchResultsFromBackend();
   }, []);
 
-  const handleAccuracy = () => {
+  const handleAccuracy = async () => {
     if (accuracyText) {
-      setAccuracyText(null); // hide if already visible
+      setAccuracyText(null); // Hide if already visible
       return;
     }
-
-    if (results.length === 0) {
-      setAccuracyText('No results available.');
-      return;
+  
+    try {
+      const response = await fetch('http://localhost:5050/dashboard/calculate_accuracy');
+      if (!response.ok) {
+        throw new Error('Failed to calculate accuracy from backend');
+      }
+  
+      const data = await response.json();
+      const percent = data.accuracy.toFixed(2);
+      console.log(data.accuracy)
+      setAccuracyText(`📈 System Accuracy: ${percent}%`);
+    } catch (error) {
+      console.error('Error fetching accuracy:', error);
+      setAccuracyText('Error fetching accuracy.');
     }
-
-    // Filter only entries that have a real trueClass (not '-')
-    const relevantResults = results.filter(r => r.trueClass !== '-');
-
-    if (relevantResults.length === 0) {
-      setAccuracyText('No labeled results to calculate accuracy.');
-      return;
-    }
-
-    // Count how many of those are correct
-    const correctCount = relevantResults.filter(r => r.systemAnalysis === r.trueClass).length;
-
-    const percent = ((correctCount / relevantResults.length) * 100).toFixed(2);
-    setAccuracyText(`📈 System Accuracy: ${percent}%`);
   };
-
+  
 
   // Clear the saved data
-  const handleClear = () => {
+  const handleClear = async () => {
     localStorage.removeItem('results');
     sessionStorage.removeItem('counter');
+    const response = await fetch("http://localhost:5050/dashboard/samples", {method: "DELETE"});
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     setResults([]);
     setAccuracyText(null); // reset accuracy text
     alert('All results have been cleared.');
