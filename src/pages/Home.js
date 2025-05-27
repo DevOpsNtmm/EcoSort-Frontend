@@ -52,7 +52,8 @@ function Home() {
     await captureAndPredict(); // Let captureAndPredict decide whether to continue
   };
 
-  const handleStart = async () => {
+  const handleStart = async (isRunning) => {
+    console.log('Is running handle start before:', isRunning);
     if (!isRunning) {
       try {
         const response = await fetch('http://localhost:5050/home/system_start', {
@@ -73,12 +74,14 @@ function Home() {
       }
   
       setIsRunning(true);
+      console.log('Is running handle start after:', isRunning);
       setTrueClass('');
       runPredictionLoop();
     }
   };
 
   const captureAndPredict = async () => {
+    console.log('Is running capture and predict:', isRunning);
     console.log('Running prediction...');
     try {
       const response = await fetch('http://localhost:5050/home/evaluate', {
@@ -101,10 +104,10 @@ function Home() {
       setItemNumber(data.inserted_id);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
   
-      if (confidenceValue < 90) {
+      if (confidenceValue < 70) {
         pausePrediction(); // Stop the loop
       } else {
-        intervalRef.current = setTimeout(captureAndPredict, 3000); // Schedule next only if confidence is good
+        intervalRef.current = setTimeout(captureAndPredict, 8000); // Schedule next only if confidence is good
       }
   
     } catch (error) {
@@ -114,7 +117,8 @@ function Home() {
     
 
   const pausePrediction = () => {
-    clearTimeout(intervalRef.current);
+    // clearTimeout(intervalRef.current);
+    handleStop(true,true);
     setDropdownDisabled(false);
     console.log('🛑 Prediction paused due to low confidence.');
   };
@@ -159,7 +163,8 @@ function Home() {
   
   };
 
-  const handleStop = async () => {
+  const handleStop = async (isRunning, paused) => {
+    console.log('Is running handle stop:', isRunning);
     if (isRunning) {
       try {
         const response = await fetch('http://localhost:5050/home/system_stop', {
@@ -178,8 +183,9 @@ function Home() {
       } catch (error) {
         console.error('Error stopping system:', error);
       }
-
-      setIsRunning(false);
+      if (!paused) {
+        setIsRunning(false);
+      }
       clearTimeout(intervalRef.current);
     }
   };
@@ -189,7 +195,7 @@ function Home() {
       <h2 style={styles.title}>♻️ EcoSort | Smart Trash Classifier</h2>
 
       {!isRunning ? (
-        <button onClick={handleStart} style={styles.startButton}>▶ Start Classification</button>
+        <button onClick={()=>handleStart(false)} style={styles.startButton}>▶ Start Classification</button>
       ) : (
         <div style={styles.resultSection}>
           <div style={styles.card}>
@@ -208,7 +214,7 @@ function Home() {
                 {showSavedMessage && (
                   <p style={{ color: '#2e7d32', marginTop: '10px' }}>✔️ Saved!</p>
                 )}
-                {confidence !== null && confidence < 90 && (
+                {confidence !== null && confidence < 70 && (
                   <div style={{ marginTop: '10px' }}>
                     <p style={{ color: '#d32f2f' }}>
                       ⚠️ Low confidence. Please classify manually:
@@ -235,7 +241,7 @@ function Home() {
             )}
           </div>
 
-          <button onClick={handleStop} style={styles.stopButton}>⏹ Stop & Save</button>
+          <button onClick={()=>handleStop(true,false)} style={styles.stopButton}>⏹ Stop & Save</button>
         </div>
       )}
       {blockMessageVisible && (
