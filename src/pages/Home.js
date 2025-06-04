@@ -154,13 +154,9 @@ function Home() {
     setTrueClass('');
     setShowSavedMessage(true);
     
-    if (isRunning) {
-      clearTimeout(intervalRef.current); // just in case a previous timeout exists
-      runPredictionLoop(); // resume the loop immediately
-    }
-
+    clearTimeout(intervalRef.current); // just in case a previous timeout exists
+    handleStart(false); // resume the loop immediately
     setTimeout(() => setShowSavedMessage(false), 7600);
-  
   };
 
   const handleStop = async (isRunning, paused) => {
