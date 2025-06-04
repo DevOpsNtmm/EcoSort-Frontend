@@ -9,6 +9,7 @@ function Home() {
   });
 
   const intervalRef = useRef(null);
+  const stoppedRef = useRef(false);
 
   const [blockMessageVisible, setBlockMessageVisible] = useState(false);
   const [dropdownDisabled, setDropdownDisabled] = useState(false);
@@ -36,8 +37,8 @@ function Home() {
     const handleBeforeUnload = (event) => {
       if (isRunning) {
         const message = '⚠️ Are you sure you want to leave? Your classification is still running.';
-        event.returnValue = message; // Standard for most browsers
-        return message; // For some older browsers
+        event.returnValue = message;
+        return message;
       }
     };
 
@@ -49,11 +50,11 @@ function Home() {
   }, [isRunning]);
 
   const runPredictionLoop = async () => {
-    await captureAndPredict(); // Let captureAndPredict decide whether to continue
+    await captureAndPredict();
   };
 
   const handleStart = async (isRunning) => {
-    console.log('Is running handle start before:', isRunning);
+    stoppedRef.current = false;
     if (!isRunning) {
       try {
         const response = await fetch('http://localhost:5050/home/system_start', {
@@ -67,21 +68,17 @@ function Home() {
           throw new Error('Failed to notify backend.');
         }
   
-        console.log('System start notified successfully.');
-  
       } catch (error) {
         console.error('Error starting system:', error);
       }
   
       setIsRunning(true);
-      console.log('Is running handle start after:', isRunning);
       setTrueClass('');
       runPredictionLoop();
     }
   };
 
   const captureAndPredict = async () => {
-    console.log('Is running capture and predict:', isRunning);
     console.log('Running prediction...');
     try {
       const response = await fetch('http://localhost:5050/home/evaluate', {
@@ -90,12 +87,12 @@ function Home() {
           'Content-Type': 'application/json',
         },
       });
-  
-      if (!response.ok) {
-        throw new Error('Failed to get prediction from backend');
-      }
-  
+
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(`Backend error: ${data.error || 'Unknown error'}`);
+      }
   
       setSystemAnalysis(data.label);
       setFileName(data.image_name);
@@ -105,9 +102,12 @@ function Home() {
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
   
       if (confidenceValue < 70) {
-        pausePrediction(); // Stop the loop
+        pausePrediction();
       } else {
-        intervalRef.current = setTimeout(captureAndPredict, 8000); // Schedule next only if confidence is good
+        if (!stoppedRef.current) {
+          const timeoutId = setTimeout(captureAndPredict, 3000);
+          intervalRef.current = timeoutId;
+        }
       }
   
     } catch (error) {
@@ -117,8 +117,9 @@ function Home() {
     
 
   const pausePrediction = () => {
-    // clearTimeout(intervalRef.current);
-    handleStop(true,true);
+    clearTimeout(intervalRef.current);
+    intervalRef.current = null;
+    handleStop(true, true);
     setDropdownDisabled(false);
     console.log('🛑 Prediction paused due to low confidence.');
   };
@@ -145,7 +146,6 @@ function Home() {
         throw new Error(`Failed to update: ${response.statusText}`);
       }
   
-      console.log('True class updated successfully');
     } catch (error) {
       console.error('Error updating true class:', error);
     }
@@ -153,18 +153,20 @@ function Home() {
     setDropdownDisabled(true);
     setTrueClass('');
     setShowSavedMessage(true);
-    
-    if (isRunning) {
-      clearTimeout(intervalRef.current); // just in case a previous timeout exists
-      runPredictionLoop(); // resume the loop immediately
-    }
-
+    console.log("got here");
+    handleStart(false);
     setTimeout(() => setShowSavedMessage(false), 7600);
   
   };
 
   const handleStop = async (isRunning, paused) => {
-    console.log('Is running handle stop:', isRunning);
+    stoppedRef.current = true;
+  
+    if (intervalRef.current) {
+      clearTimeout(intervalRef.current);
+      intervalRef.current = null;
+    }
+  
     if (isRunning) {
       try {
         const response = await fetch('http://localhost:5050/home/system_stop', {
@@ -179,14 +181,13 @@ function Home() {
         }
   
         console.log('System stop notified successfully.');
-  
       } catch (error) {
         console.error('Error stopping system:', error);
       }
+  
       if (!paused) {
         setIsRunning(false);
       }
-      clearTimeout(intervalRef.current);
     }
   };
 

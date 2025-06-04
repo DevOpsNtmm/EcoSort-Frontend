@@ -36,7 +36,6 @@ const ResultsDashboard = () => {
         }));
 
         setResults(formattedResults);
-        console.log(formattedResults);
 
       } catch (error) {
         console.error("Failed to fetch results from backend:", error);
@@ -49,7 +48,7 @@ const ResultsDashboard = () => {
 
   const handleAccuracy = async () => {
     if (accuracyText) {
-      setAccuracyText(null); // Hide if already visible
+      setAccuracyText(null);
       return;
     }
   
@@ -61,7 +60,6 @@ const ResultsDashboard = () => {
   
       const data = await response.json();
       const percent = data.accuracy.toFixed(2);
-      console.log(data.accuracy)
       setAccuracyText(`📈 System Accuracy: ${percent}%`);
     } catch (error) {
       console.error('Error fetching accuracy:', error);
