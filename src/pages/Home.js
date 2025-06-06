@@ -9,6 +9,7 @@ function Home() {
   });
 
   const intervalRef = useRef(null);
+  const stoppedRef = useRef(false);
 
   const [blockMessageVisible, setBlockMessageVisible] = useState(false);
   const [dropdownDisabled, setDropdownDisabled] = useState(false);
@@ -36,8 +37,8 @@ function Home() {
     const handleBeforeUnload = (event) => {
       if (isRunning) {
         const message = '⚠️ Are you sure you want to leave? Your classification is still running.';
-        event.returnValue = message; // Standard for most browsers
-        return message; // For some older browsers
+        event.returnValue = message;
+        return message;
       }
     };
 
@@ -49,10 +50,11 @@ function Home() {
   }, [isRunning]);
 
   const runPredictionLoop = async () => {
-    await captureAndPredict(); // Let captureAndPredict decide whether to continue
+    await captureAndPredict();
   };
 
-  const handleStart = async () => {
+  const handleStart = async (isRunning) => {
+    stoppedRef.current = false;
     if (!isRunning) {
       try {
         const response = await fetch('http://localhost:5050/home/system_start', {
@@ -65,9 +67,8 @@ function Home() {
         if (!response.ok) {
           throw new Error('Failed to notify backend.');
         }
-  
-        console.log('System start notified successfully.');
-  
+      
+      console.log('System start notified successfully.');
       } catch (error) {
         console.error('Error starting system:', error);
       }
@@ -87,12 +88,12 @@ function Home() {
           'Content-Type': 'application/json',
         },
       });
-  
-      if (!response.ok) {
-        throw new Error('Failed to get prediction from backend');
-      }
-  
+
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(`Backend error: ${data.error || 'Unknown error'}`);
+      }
   
       setSystemAnalysis(data.label);
       setFileName(data.image_name);
@@ -101,10 +102,13 @@ function Home() {
       setItemNumber(data.inserted_id);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
   
-      if (confidenceValue < 90) {
-        pausePrediction(); // Stop the loop
+      if (confidenceValue < 70) {
+        pausePrediction();
       } else {
-        intervalRef.current = setTimeout(captureAndPredict, 3000); // Schedule next only if confidence is good
+        if (!stoppedRef.current) {
+          const timeoutId = setTimeout(captureAndPredict, 3000);
+          intervalRef.current = timeoutId;
+        }
       }
   
     } catch (error) {
@@ -115,6 +119,8 @@ function Home() {
 
   const pausePrediction = () => {
     clearTimeout(intervalRef.current);
+    intervalRef.current = null;
+    handleStop(true, true);
     setDropdownDisabled(false);
     console.log('🛑 Prediction paused due to low confidence.');
   };
@@ -141,7 +147,6 @@ function Home() {
         throw new Error(`Failed to update: ${response.statusText}`);
       }
   
-      console.log('True class updated successfully');
     } catch (error) {
       console.error('Error updating true class:', error);
     }
@@ -149,17 +154,19 @@ function Home() {
     setDropdownDisabled(true);
     setTrueClass('');
     setShowSavedMessage(true);
-    
-    if (isRunning) {
-      clearTimeout(intervalRef.current); // just in case a previous timeout exists
-      runPredictionLoop(); // resume the loop immediately
-    }
-
+    handleStart(false);
     setTimeout(() => setShowSavedMessage(false), 7600);
   
   };
 
-  const handleStop = async () => {
+  const handleStop = async (isRunning, paused) => {
+    stoppedRef.current = true;
+  
+    if (intervalRef.current) {
+      clearTimeout(intervalRef.current);
+      intervalRef.current = null;
+    }
+  
     if (isRunning) {
       try {
         const response = await fetch('http://localhost:5050/home/system_stop', {
@@ -174,13 +181,13 @@ function Home() {
         }
   
         console.log('System stop notified successfully.');
-  
       } catch (error) {
         console.error('Error stopping system:', error);
       }
-
-      setIsRunning(false);
-      clearTimeout(intervalRef.current);
+  
+      if (!paused) {
+        setIsRunning(false);
+      }
     }
   };
 
@@ -189,7 +196,7 @@ function Home() {
       <h2 style={styles.title}>♻️ EcoSort | Smart Trash Classifier</h2>
 
       {!isRunning ? (
-        <button onClick={handleStart} style={styles.startButton}>▶ Start Classification</button>
+        <button onClick={()=>handleStart(false)} style={styles.startButton}>▶ Start Classification</button>
       ) : (
         <div style={styles.resultSection}>
           <div style={styles.card}>
@@ -208,7 +215,7 @@ function Home() {
                 {showSavedMessage && (
                   <p style={{ color: '#2e7d32', marginTop: '10px' }}>✔️ Saved!</p>
                 )}
-                {confidence !== null && confidence < 90 && (
+                {confidence !== null && confidence < 70 && (
                   <div style={{ marginTop: '10px' }}>
                     <p style={{ color: '#d32f2f' }}>
                       ⚠️ Low confidence. Please classify manually:
@@ -235,7 +242,7 @@ function Home() {
             )}
           </div>
 
-          <button onClick={handleStop} style={styles.stopButton}>⏹ Stop & Save</button>
+          <button onClick={()=>handleStop(true,false)} style={styles.stopButton}>⏹ Stop & Save</button>
         </div>
       )}
       {blockMessageVisible && (
