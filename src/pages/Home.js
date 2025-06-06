@@ -153,7 +153,6 @@ function Home() {
     setDropdownDisabled(true);
     setTrueClass('');
     setShowSavedMessage(true);
-    console.log("got here");
     handleStart(false);
     setTimeout(() => setShowSavedMessage(false), 7600);
   
