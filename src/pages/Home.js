@@ -67,7 +67,8 @@ function Home() {
         if (!response.ok) {
           throw new Error('Failed to notify backend.');
         }
-  
+      
+      console.log('System start notified successfully.');
       } catch (error) {
         console.error('Error starting system:', error);
       }
