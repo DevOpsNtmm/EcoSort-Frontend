@@ -157,8 +157,8 @@ function Home() {
     setTimeout(() => setShowSavedMessage(false), 1000);
     
     try {
-      const response = await fetch(`http://localhost:5050/servo_push`, {
-        method: "PUT",
+      const response = await fetch(`http://localhost:5050/home/servo_push`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
