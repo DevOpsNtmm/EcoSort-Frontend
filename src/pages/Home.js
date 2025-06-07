@@ -10,6 +10,9 @@ function Home() {
 
   const intervalRef = useRef(null);
   const stoppedRef = useRef(false);
+  const PREDICTION_INTERVAL_MS = 3000; // 3 seconds
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 
   const [blockMessageVisible, setBlockMessageVisible] = useState(false);
   const [dropdownDisabled, setDropdownDisabled] = useState(false);
@@ -75,6 +78,7 @@ function Home() {
   
       setIsRunning(true);
       setTrueClass('');
+      await sleep(PREDICTION_INTERVAL_MS);
       runPredictionLoop();
     }
   };
@@ -106,7 +110,7 @@ function Home() {
         pausePrediction();
       } else {
         if (!stoppedRef.current) {
-          const timeoutId = setTimeout(captureAndPredict, 3000);
+          const timeoutId = setTimeout(captureAndPredict, PREDICTION_INTERVAL_MS);
           intervalRef.current = timeoutId;
         }
       }
