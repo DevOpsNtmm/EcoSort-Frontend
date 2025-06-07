@@ -152,11 +152,31 @@ function Home() {
     }
   
     setDropdownDisabled(true);
-    setTrueClass('');
     setShowSavedMessage(true);
     handleStart(false);
-    setTimeout(() => setShowSavedMessage(false), 7600);
+    setTimeout(() => setShowSavedMessage(false), 1000);
+    
+    try {
+      const response = await fetch(`http://localhost:5050/servo_push`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          trueClass,
+        }),
+      });
   
+      if (!response.ok) {
+        throw new Error(`Failed to call servo: ${response.statusText}`);
+      }
+  
+    } catch (error) {
+      console.error('Error calling servo endpoint:', error);
+    }
+
+    setTrueClass('');
+
   };
 
   const handleStop = async (isRunning, paused) => {
