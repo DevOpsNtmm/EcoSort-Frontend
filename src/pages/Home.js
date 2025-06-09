@@ -10,7 +10,7 @@ function Home() {
 
   const intervalRef = useRef(null);
   const stoppedRef = useRef(false);
-  const PREDICTION_INTERVAL_MS = 3000; // 3 seconds
+  const PREDICTION_INTERVAL_MS = 1000; // 3 seconds
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -159,6 +159,7 @@ function Home() {
     setShowSavedMessage(true);
     handleStart(false);
     setTimeout(() => setShowSavedMessage(false), 1000);
+    sleep(1);
     
     try {
       const response = await fetch(`http://localhost:5050/home/servo_push`, {
