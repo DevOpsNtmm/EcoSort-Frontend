@@ -87,6 +87,7 @@ const EditResult = () => {
           <option value="Paper">Paper</option>
           <option value="Plastic">Plastic</option>
           <option value="Other">Other</option>
+          <option value="Track">Track</option>
         </select>
 
       </div>
