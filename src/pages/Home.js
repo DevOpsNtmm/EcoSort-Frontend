@@ -23,7 +23,9 @@ function Home() {
   const [trueClass, setTrueClass] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
   const [fileName, setFileName] = useState('');
-  const [predictionText, setPredictionText] = useState('');  // Added predictionText state
+  const [predictionText, setPredictionText] = useState('');
+  const [confidenceText, setConfidenceText] = useState(null);
+
 
   // Block navigation if the system is running
   useBlocker(() => {
@@ -100,7 +102,8 @@ function Home() {
       }
 
       setSystemAnalysis(data.label);
-      setPredictionText(data.prediction_text);  // Store predictionText here
+      setPredictionText(data.prediction_text);
+      setConfidenceText(data.confidence_text);
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
       setConfidence(confidenceValue);
@@ -237,8 +240,8 @@ function Home() {
 
             {itemNumber !== null ? (
               <>
-                <p>{predictionText}</p> {/* Display prediction_text here */}
-                <p><strong>Confidence:</strong> {confidence !== null ? `${confidence}%` : '—'}</p>
+                <p>{predictionText}</p>
+                {confidenceText && <p>{confidenceText}</p>}
                 {showSavedMessage && (
                   <p style={{ color: '#2e7d32', marginTop: '10px' }}>✔️ Saved!</p>
                 )}
