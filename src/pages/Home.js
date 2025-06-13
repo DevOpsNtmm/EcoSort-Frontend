@@ -99,7 +99,9 @@ function Home() {
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
       setConfidence(confidenceValue);
-      setItemNumber(data.inserted_id);
+      if (data.inserted_id) {
+        setItemNumber(data.inserted_id);  // Only store if there's a valid ID (track label returns with 'None')
+      }
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
   
       if (confidenceValue < 70) {
