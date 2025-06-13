@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useContext } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { UNSAFE_NavigationContext } from 'react-router-dom';
 
 function Home() {
@@ -24,6 +23,7 @@ function Home() {
   const [trueClass, setTrueClass] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
   const [fileName, setFileName] = useState('');
+  const [predictionText, setPredictionText] = useState('');  // Added predictionText state
 
   // Block navigation if the system is running
   useBlocker(() => {
@@ -66,16 +66,16 @@ function Home() {
             'Content-Type': 'application/json',
           },
         });
-  
+
         if (!response.ok) {
           throw new Error('Failed to notify backend.');
         }
-      
-      console.log('System start notified successfully.');
+
+        console.log('System start notified successfully.');
       } catch (error) {
         console.error('Error starting system:', error);
       }
-  
+
       setIsRunning(true);
       setTrueClass('');
       await sleep(PREDICTION_INTERVAL_MS);
@@ -98,14 +98,15 @@ function Home() {
       if (!response.ok) {
         throw new Error(`Backend error: ${data.error || 'Unknown error'}`);
       }
-  
+
       setSystemAnalysis(data.label);
+      setPredictionText(data.prediction_text);  // Store predictionText here
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
       setConfidence(confidenceValue);
       setItemNumber(data.inserted_id);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
-  
+
       if (confidenceValue < 70) {
         pausePrediction();
       } else {
@@ -114,12 +115,12 @@ function Home() {
           intervalRef.current = timeoutId;
         }
       }
-  
+
     } catch (error) {
       console.error('Error capturing and predicting:', error);
     }
   };
-    
+
 
   const pausePrediction = () => {
     clearTimeout(intervalRef.current);
@@ -134,7 +135,7 @@ function Home() {
       alert('⚠️ Please select a classification before saving.');
       return;
     }
-  
+
     try {
       const response = await fetch(`http://localhost:5050/dashboard/results/${itemNumber}`, {
         method: "PUT",
@@ -146,21 +147,21 @@ function Home() {
           systemAnalysis,
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`Failed to update: ${response.statusText}`);
       }
-  
+
     } catch (error) {
       console.error('Error updating true class:', error);
     }
-  
+
     setDropdownDisabled(true);
     setShowSavedMessage(true);
     handleStart(false);
     setTimeout(() => setShowSavedMessage(false), 1000);
     sleep(1);
-    
+
     try {
       const response = await fetch(`http://localhost:5050/home/servo_push`, {
         method: "POST",
@@ -171,11 +172,11 @@ function Home() {
           trueClass,
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`Failed to call servo: ${response.statusText}`);
       }
-  
+
     } catch (error) {
       console.error('Error calling servo endpoint:', error);
     }
@@ -186,12 +187,12 @@ function Home() {
 
   const handleStop = async (isRunning, paused) => {
     stoppedRef.current = true;
-  
+
     if (intervalRef.current) {
       clearTimeout(intervalRef.current);
       intervalRef.current = null;
     }
-  
+
     if (isRunning) {
       try {
         const response = await fetch('http://localhost:5050/home/system_stop', {
@@ -200,16 +201,16 @@ function Home() {
             'Content-Type': 'application/json',
           },
         });
-  
+
         if (!response.ok) {
           throw new Error('Failed to notify backend.');
         }
-  
+
         console.log('System stop notified successfully.');
       } catch (error) {
         console.error('Error stopping system:', error);
       }
-  
+
       if (!paused) {
         setIsRunning(false);
       }
@@ -221,7 +222,8 @@ function Home() {
       <h2 style={styles.title}>♻️ EcoSort | Smart Trash Classifier</h2>
 
       {!isRunning ? (
-        <button onClick={()=>handleStart(false)} style={styles.startButton}>▶ Start Classification</button>
+        <button onClick={() => handleStart(false)} style={styles.startButton}>▶ Start Classification</button>
+        
       ) : (
         <div style={styles.resultSection}>
           <div style={styles.card}>
@@ -235,7 +237,7 @@ function Home() {
 
             {itemNumber !== null ? (
               <>
-                <p><strong>Prediction:</strong> {systemAnalysis}</p>
+                <p>{predictionText}</p> {/* Display prediction_text here */}
                 <p><strong>Confidence:</strong> {confidence !== null ? `${confidence}%` : '—'}</p>
                 {showSavedMessage && (
                   <p style={{ color: '#2e7d32', marginTop: '10px' }}>✔️ Saved!</p>
@@ -268,7 +270,7 @@ function Home() {
             )}
           </div>
 
-          <button onClick={()=>handleStop(true,false)} style={styles.stopButton}>⏹ Stop & Save</button>
+          <button onClick={() => handleStop(true, false)} style={styles.stopButton}>⏹ Stop & Save</button>
         </div>
       )}
       {blockMessageVisible && (
