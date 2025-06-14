@@ -106,7 +106,7 @@ function Home() {
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
 
       if (confidenceValue < 70) {
-        if (systemAnalysis != "Track") {
+        if (systemAnalysis != "None") {
           pausePrediction();
         }
       } else {
@@ -257,7 +257,7 @@ function Home() {
                       <option value="Paper">Paper</option>
                       <option value="Plastic">Plastic</option>
                       <option value="Other">Other</option>
-                      <option value="Track">None</option>
+                      <option value="None">None</option>
                     </select>
                     <button onClick={handleManualSave} style={styles.manualSaveButton}>
                       💾 Save Manual Class
