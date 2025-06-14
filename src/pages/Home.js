@@ -104,6 +104,8 @@ function Home() {
       setConfidence(confidenceValue);
       if (data.inserted_id) {
         setItemNumber(data.inserted_id);  // Only store if there's a valid ID (track label returns with 'None')
+      } else {
+        setItemNumber(null); // Explicitly clear itemNumber if no inserted_id (e.g., label is 'Track')
       }
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
 
