@@ -111,7 +111,9 @@ function Home() {
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
 
       if (confidenceValue < 70) {
-        pausePrediction();
+        if (systemAnalysis != "Track") {
+          pausePrediction();
+        }
       } else {
         if (!stoppedRef.current) {
           const timeoutId = setTimeout(captureAndPredict, PREDICTION_INTERVAL_MS);
