@@ -262,7 +262,7 @@ function Home() {
                       <option value="Paper">Paper</option>
                       <option value="Plastic">Plastic</option>
                       <option value="Other">Other</option>
-                      <option value="Track">Track</option>
+                      <option value="Track">None</option>
                     </select>
                     <button onClick={handleManualSave} style={styles.manualSaveButton}>
                       💾 Save Manual Class
