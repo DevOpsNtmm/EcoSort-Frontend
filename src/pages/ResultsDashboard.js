@@ -148,10 +148,28 @@ const ResultsDashboard = () => {
       {showRetrainPopup && (
         <PopupConfirmation
           title="Retrain Model"
-          message="This will add failed items to the training set and retrain. Continue?"
-          onConfirm={() => {
-            alert("Model retraining simulated.");
-            setShowRetrainPopup(false);
+          message="This retrain the model with the non-confident classified items. Continue?"
+          onConfirm={async () => {
+            try {
+              const response = await fetch("http://localhost:5050/dashboard/retrain", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+
+              if (!response.ok) {
+                throw new Error("Retraining failed");
+              }
+
+              const result = await response.json();
+              alert("Model retraining completed successfully.");
+            } catch (error) {
+              console.error(error);
+              alert("Error during retraining. Please try again.");
+            } finally {
+              setShowRetrainPopup(false);
+            }
           }}
           onCancel={() => setShowRetrainPopup(false)}
         />
