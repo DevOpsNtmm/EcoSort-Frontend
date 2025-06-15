@@ -148,7 +148,7 @@ const ResultsDashboard = () => {
       {showRetrainPopup && (
         <PopupConfirmation
           title="Retrain Model"
-          message="This retrain the model with the non-confident classified items. Continue?"
+          message="This will retrain the model with the non-confident classified items. Continue?"
           onConfirm={async () => {
             try {
               const response = await fetch("http://localhost:5050/dashboard/retrain", {
