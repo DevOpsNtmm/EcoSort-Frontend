@@ -52,6 +52,7 @@ function Home() {
   }, [isRunning]);
 
   const runPredictionLoop = async () => {
+    if (stoppedRef.current) return; // Prevent running if stopped
     await captureAndPredict();
   };
 
@@ -78,11 +79,14 @@ function Home() {
       setIsRunning(true);
       setTrueClass('');
       await sleep(PREDICTION_INTERVAL_MS);
+      if (stoppedRef.current) return;  // Prevent running if stopped during sleep
       runPredictionLoop();
     }
   };
 
   const captureAndPredict = async () => {
+    if (stoppedRef.current) return; // Prevent running if stopped
+
     console.log('Running prediction...');
     try {
       const response = await fetch('http://localhost:5050/home/evaluate', {
