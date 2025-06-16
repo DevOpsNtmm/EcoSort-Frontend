@@ -7,6 +7,7 @@ const ResultsDashboard = () => {
   const [results, setResults] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [showRetrainPopup, setShowRetrainPopup] = useState(false);
+  const [isRetraining, setIsRetraining] = useState(false);
   const [accuracyText, setAccuracyText] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -148,8 +149,14 @@ const ResultsDashboard = () => {
       {showRetrainPopup && (
         <PopupConfirmation
           title="Retrain Model"
-          message="This will retrain the model with the non-confident classified items. Continue?"
+          message={
+            isRetraining
+              ? "Retraining in progress. Please wait..."
+              : "This will retrain the model with the non-confident classified items. Continue?"
+          }
+          showButtons={!isRetraining} // Hide buttons while retraining
           onConfirm={async () => {
+            setIsRetraining(true);
             try {
               const response = await fetch("http://localhost:5050/dashboard/retrain", {
                 method: "POST",
@@ -157,24 +164,24 @@ const ResultsDashboard = () => {
                   "Content-Type": "application/json",
                 },
               });
-          
+
               const result = await response.json();
-          
+
               if (!response.ok) {
-                // Custom message from backend (400 or 500)
                 throw new Error(result.message || "Retraining failed");
               }
-          
-              alert("✅ Model retraining completed successfully.");
+
+              alert("Model retraining completed successfully.");
             } catch (error) {
               console.error(error);
-          
+
               if (error.message.includes("No new uncertain images found. Retraining aborted.")) {
-                alert("No low-confidence images available for retraining. Retraining aborted.");
+                alert("No low-confidence images available for retraining.");
               } else {
                 alert("Internal server error during retraining. Please try again.");
               }
             } finally {
+              setIsRetraining(false);
               setShowRetrainPopup(false);
             }
           }}
