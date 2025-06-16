@@ -157,16 +157,23 @@ const ResultsDashboard = () => {
                   "Content-Type": "application/json",
                 },
               });
-
-              if (!response.ok) {
-                throw new Error("Retraining failed");
-              }
-
+          
               const result = await response.json();
-              alert("Model retraining completed successfully.");
+          
+              if (!response.ok) {
+                // Custom message from backend (400 or 500)
+                throw new Error(result.message || "Retraining failed");
+              }
+          
+              alert("✅ Model retraining completed successfully.");
             } catch (error) {
               console.error(error);
-              alert("Error during retraining. Please try again.");
+          
+              if (error.message.includes("No new uncertain images found. Retraining aborted.")) {
+                alert("No low-confidence images available for retraining. Retraining aborted.");
+              } else {
+                alert("Internal server error during retraining. Please try again.");
+              }
             } finally {
               setShowRetrainPopup(false);
             }
