@@ -52,6 +52,7 @@ function Home() {
   }, [isRunning]);
 
   const runPredictionLoop = async () => {
+    if (stoppedRef.current) return; // Prevent running if stopped
     await captureAndPredict();
   };
 
@@ -78,11 +79,14 @@ function Home() {
       setIsRunning(true);
       setTrueClass('');
       await sleep(PREDICTION_INTERVAL_MS);
+      if (stoppedRef.current) return;  // Prevent running if stopped during sleep
       runPredictionLoop();
     }
   };
 
   const captureAndPredict = async () => {
+    if (stoppedRef.current) return; // Prevent running if stopped
+
     console.log('Running prediction...');
     try {
       const response = await fetch('http://localhost:5050/home/evaluate', {
@@ -102,9 +106,7 @@ function Home() {
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
       setConfidence(confidenceValue);
-      if (data.inserted_id) {
-        setItemNumber(data.inserted_id);  // Only store if there's a valid ID (track label returns with 'None')
-      }
+      setItemNumber(data.inserted_id || null);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
 
       if (confidenceValue < 70) {
@@ -181,6 +183,12 @@ function Home() {
     } catch (error) {
       console.error('Error calling servo endpoint:', error);
     }
+
+    await fetch(`http://localhost:5050/dashboard/copy_uncertain/${itemNumber}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ trueClass }),
+    });
 
     setTrueClass('');
 
