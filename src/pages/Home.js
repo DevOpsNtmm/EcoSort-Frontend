@@ -182,6 +182,12 @@ function Home() {
       console.error('Error calling servo endpoint:', error);
     }
 
+    await fetch(`http://localhost:5050/dashboard/copy_uncertain/${itemNumber}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ trueClass }),
+    });
+
     setTrueClass('');
 
   };
