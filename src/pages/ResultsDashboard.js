@@ -137,13 +137,32 @@ const ResultsDashboard = () => {
         <PopupConfirmation
           title="Reset Model"
           message="Are you sure you want to reset the model to default?"
-          onConfirm={() => {
-            alert("Model reset to default (simulated).");
-            setShowPopup(false);
+          onConfirm={async () => {
+            try {
+              const response = await fetch("http://localhost:5050/dashboard/default_model", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+
+              const result = await response.json();
+
+              if (!response.ok) {
+                throw new Error(result.message || "Resetting to default model failed");
+              }
+
+              alert("Model reset to default successfully");
+              setShowPopup(false);
+            } catch (error) {
+              console.error(error);
+
+            } 
           }}
           onCancel={() => setShowPopup(false)}
         />
       )}
+
 
       {/* Retrain confirmation popup */}
       {showRetrainPopup && (
