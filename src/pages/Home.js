@@ -9,7 +9,7 @@ function Home() {
 
   const intervalRef = useRef(null);
   const stoppedRef = useRef(false);
-  const PREDICTION_INTERVAL_MS = 1000;
+  const PREDICTION_INTERVAL_MS = 250;
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -109,11 +109,11 @@ function Home() {
       setItemNumber(data.inserted_id || null);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
 
-      if (confidenceValue < 70) {
-        if (systemAnalysis != "Track") {
+      console.log(`Label: ${data.label}, Confidence: ${confidenceValue}`)
+      if (confidenceValue < 70 && data.label !== "Track") {
           pausePrediction();
-        }
-      } else {
+      }
+      else {
         if (!stoppedRef.current) {
           const timeoutId = setTimeout(captureAndPredict, PREDICTION_INTERVAL_MS);
           intervalRef.current = timeoutId;
