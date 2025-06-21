@@ -9,7 +9,7 @@ function Home() {
 
   const intervalRef = useRef(null);
   const stoppedRef = useRef(false);
-  const PREDICTION_INTERVAL_MS = 1000;
+  const PREDICTION_INTERVAL_MS = 250;
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -108,9 +108,8 @@ function Home() {
       setItemNumber(data.inserted_id || null);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
 
-      console.log(`Prediction: ${data.label}, Confidence: ${confidenceValue}`)
+      console.log(`Label: ${data.label}, Confidence: ${confidenceValue}`)
       if (confidenceValue < 70 && data.label !== "Track") {
-          console.log(`data.label: ${data.label}`)
           pausePrediction();
       }
       else {
