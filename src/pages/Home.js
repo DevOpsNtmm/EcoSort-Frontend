@@ -9,7 +9,7 @@ function Home() {
 
   const intervalRef = useRef(null);
   const stoppedRef = useRef(false);
-  const PREDICTION_INTERVAL_MS = 1000;
+  const PREDICTION_INTERVAL_MS = 250;
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
