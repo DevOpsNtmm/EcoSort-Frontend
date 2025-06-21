@@ -101,7 +101,6 @@ function Home() {
       if (!response.ok) {
         throw new Error(`Backend error: ${data.error || 'Unknown error'}`);
       }
-
       setSystemAnalysis(data.label);
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
@@ -109,11 +108,12 @@ function Home() {
       setItemNumber(data.inserted_id || null);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
 
-      if (confidenceValue < 70) {
-        if (systemAnalysis != "Track") {
+      console.log(`Prediction: ${data.label}, Confidence: ${confidenceValue}`)
+      if (confidenceValue < 70 && data.label !== "Track") {
+          console.log(`data.label: ${data.label}`)
           pausePrediction();
-        }
-      } else {
+      }
+      else {
         if (!stoppedRef.current) {
           const timeoutId = setTimeout(captureAndPredict, PREDICTION_INTERVAL_MS);
           intervalRef.current = timeoutId;
