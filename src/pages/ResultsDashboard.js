@@ -170,7 +170,7 @@ const ResultsDashboard = () => {
           title="Retrain Model"
           message={
             isRetraining
-              ? "Retraining in progress. Please wait..."
+              ? "Retraining in progress. It takes approximately 2 minutes. Please wait..."
               : "This will retrain the model with the non-confident classified items. Continue?"
           }
           showButtons={!isRetraining} // Hide buttons while retraining
