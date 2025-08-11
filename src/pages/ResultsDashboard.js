@@ -7,6 +7,7 @@ const ResultsDashboard = () => {
   const [results, setResults] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [showRetrainPopup, setShowRetrainPopup] = useState(false);
+  const [isRetraining, setIsRetraining] = useState(false);
   const [accuracyText, setAccuracyText] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -136,22 +137,72 @@ const ResultsDashboard = () => {
         <PopupConfirmation
           title="Reset Model"
           message="Are you sure you want to reset the model to default?"
-          onConfirm={() => {
-            alert("Model reset to default (simulated).");
-            setShowPopup(false);
+          onConfirm={async () => {
+            try {
+              const response = await fetch("http://localhost:5050/dashboard/default_model", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+
+              const result = await response.json();
+
+              if (!response.ok) {
+                throw new Error(result.message || "Resetting to default model failed");
+              }
+
+              alert("Model reset to default successfully");
+              setShowPopup(false);
+            } catch (error) {
+              console.error(error);
+
+            } 
           }}
           onCancel={() => setShowPopup(false)}
         />
       )}
 
+
       {/* Retrain confirmation popup */}
       {showRetrainPopup && (
         <PopupConfirmation
           title="Retrain Model"
-          message="This will add failed items to the training set and retrain. Continue?"
-          onConfirm={() => {
-            alert("Model retraining simulated.");
-            setShowRetrainPopup(false);
+          message={
+            isRetraining
+              ? "Retraining in progress. It takes approximately 2 minutes. Please wait..."
+              : "This will retrain the model with the non-confident classified items. Continue?"
+          }
+          showButtons={!isRetraining} // Hide buttons while retraining
+          onConfirm={async () => {
+            setIsRetraining(true);
+            try {
+              const response = await fetch("http://localhost:5050/dashboard/retrain", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+
+              const result = await response.json();
+
+              if (!response.ok) {
+                throw new Error(result.message || "Retraining failed");
+              }
+
+              alert("Model retraining completed successfully.");
+            } catch (error) {
+              console.error(error);
+
+              if (error.message.includes("No new uncertain images found. Retraining aborted.")) {
+                alert("No low-confidence images available for retraining.");
+              } else {
+                alert("Internal server error during retraining. Please try again.");
+              }
+            } finally {
+              setIsRetraining(false);
+              setShowRetrainPopup(false);
+            }
           }}
           onCancel={() => setShowRetrainPopup(false)}
         />

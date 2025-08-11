@@ -101,7 +101,6 @@ function Home() {
       if (!response.ok) {
         throw new Error(`Backend error: ${data.error || 'Unknown error'}`);
       }
-
       setSystemAnalysis(data.label);
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);

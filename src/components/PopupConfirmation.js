@@ -2,16 +2,18 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 // Reusable confirmation popup component
-const PopupConfirmation = ({ title, message, onConfirm, onCancel }) => {
+const PopupConfirmation = ({ title, message, onConfirm, onCancel, showButtons = true }) => {
   return (
     <div style={styles.overlay}>
       <div style={styles.popup}>
         <h3 style={styles.title}>{title}</h3>
         <p style={styles.message}>{message}</p>
-        <div style={styles.actions}>
-          <button onClick={onConfirm} style={styles.confirm}>Yes</button>
-          <button onClick={onCancel} style={styles.cancel}>Cancel</button>
-        </div>
+        {showButtons && (
+          <div style={styles.actions}>
+            <button onClick={onConfirm} style={styles.confirm}>Yes</button>
+            <button onClick={onCancel} style={styles.cancel}>Cancel</button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -23,6 +25,7 @@ PopupConfirmation.propTypes = {
   message: PropTypes.string.isRequired,
   onConfirm: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
+  showButtons: PropTypes.bool, // <- NEW prop
 };
 
 // Inline styling for the popup appearance
