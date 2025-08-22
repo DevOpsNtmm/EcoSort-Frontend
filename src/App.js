@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import ResultsDashboard from './pages/ResultsDashboard';
 import EditResult from './pages/EditResult';
+import Metrics from "./pages/Metrics";
 
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<ResultsDashboard />} />
           <Route path="/edit/:id" element={<EditResult />} />
+          <Route path="/metrics" element={<Metrics />} />
         </Routes>
       </div>
     </Router>
