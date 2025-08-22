@@ -32,6 +32,18 @@ const Navbar = () => {
         >
           Results Dashboard
         </NavLink>
+        <NavLink
+          to="/metrics"
+          className={({ isActive }) =>
+            isActive ? 'nav-link active' : 'nav-link'
+          }
+          style={({ isActive }) => ({
+            ...styles.link,
+            ...(isActive ? styles.activeLink : {})
+          })}
+        >
+          Metrics
+        </NavLink>
       </div>
     </nav>
   );
