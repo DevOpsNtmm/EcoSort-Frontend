@@ -72,65 +72,65 @@ const Metrics = () => {
     );
   }
 
-  function getStackedBarChartData(metrics) {
-    const totalSamples = metrics.total_samples || 0;
-    let withFeedback = 0;
-    let correct = 0;
-    let incorrect = 0;
+function getStackedBarChartData(metrics) {
+  const totalSamples = metrics.total_samples || 0;
+  let withFeedback = 0;
+  let correct = 0;
+  let incorrect = 0;
 
-    Object.entries(metrics.classification).forEach(([cls, data]) => {
-      const classWithFeedback =
-        data.correct +
-        (data.wrong_as_paper || 0) +
-        (data.wrong_as_plastic || 0) +
-        (data.wrong_as_other || 0);
-      withFeedback += classWithFeedback;
-      correct += data.correct;
-      incorrect +=
-        (data.wrong_as_paper || 0) +
-        (data.wrong_as_plastic || 0) +
-        (data.wrong_as_other || 0);
-    });
+  Object.entries(metrics.classification).forEach(([cls, data]) => {
+    const classWithFeedback =
+      data.correct +
+      (data.wrong_as_paper || 0) +
+      (data.wrong_as_plastic || 0) +
+      (data.wrong_as_other || 0);
+    withFeedback += classWithFeedback;
+    correct += data.correct;
+    incorrect +=
+      (data.wrong_as_paper || 0) +
+      (data.wrong_as_plastic || 0) +
+      (data.wrong_as_other || 0);
+  });
 
-    const withoutFeedback = totalSamples - withFeedback;
+  const withoutFeedback = totalSamples - withFeedback;
 
-    return {
-      labels: [
-        "Total Samples",
-        "Correctly Classified",
-        "Incorrectly Classified"
-      ],
-      datasets: [
-        {
-          label: "With Feedback",
-          data: [withFeedback, correct, incorrect],
-          backgroundColor: "rgba(59, 130, 246, 0.8)",
-          borderColor: "rgba(59, 130, 246, 1)",
-          borderWidth: 2,
-          borderRadius: 8,
-          borderSkipped: false,
-        },
-        {
-          label: "Without Feedback",
-          data: [withoutFeedback, null, null],
-          backgroundColor: "#d32f2f",
-          stack: "Samples"
-        },
-        {
-          label: "Correctly Classified (with feedback)",
-          data: [null, correct, null],
-          backgroundColor: "#2196f3",
-          stack: "Other"
-        },
-        {
-          label: "Falsely Classified (with feedback)",
-          data: [null, null, incorrect],
-          backgroundColor: "#ff9800",
-          stack: "Other"
-        }
-      ]
-    };
-  }
+  return {
+    labels: [
+      "Total Samples",
+      "Correctly Classified",
+      "Incorrectly Classified"
+    ],
+    datasets: [
+      {
+        label: "With Feedback",
+        data: [withFeedback, 0, 0],
+        backgroundColor: "rgba(59, 130, 246, 0.8)",
+        borderColor: "rgba(59, 130, 246, 1)",
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+      },
+      {
+        label: "Without Feedback",
+        data: [withoutFeedback, 0, 0],
+        backgroundColor: "#d32f2f",
+        stack: "Samples"
+      },
+      {
+        label: "Correctly Classified",
+        data: [0, correct, 0],
+        backgroundColor: "#10b981",
+        stack: "Classification"
+      },
+      {
+        label: "Incorrectly Classified",
+        data: [0, 0, incorrect],
+        backgroundColor: "#f59e0b",
+        stack: "Classification"
+      }
+    ]
+  };
+}
 
   const overallAccuracy = metrics.accuracy || 0;
   const accuracyColor = overallAccuracy >= 90 ? "#10b981" : 
