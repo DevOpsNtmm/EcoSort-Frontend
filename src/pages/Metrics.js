@@ -46,6 +46,7 @@ const Metrics = () => {
     fetch("http://localhost:5050/metrics/classification")
       .then((res) => res.json())
       .then((data) => {
+        console.log("metrics.samples", data.samples);
         setMetrics(data);
         setLoading(false);
       })
@@ -134,6 +135,29 @@ const Metrics = () => {
   const overallAccuracy = metrics.accuracy || 0;
   const accuracyColor = overallAccuracy >= 90 ? "#10b981" : 
                        overallAccuracy >= 70 ? "#f59e0b" : "#ef4444";
+function getInterventionOverTimeData(samples) {
+  const interventions = samples.filter(s => Number(s.confidence_percentage) < 70 && s.timestamp);
+  const countsByDate = {};
+  interventions.forEach(s => {
+    const date = new Date(s.timestamp).toISOString().slice(0, 10);
+    countsByDate[date] = (countsByDate[date] || 0) + 1;
+  });
+  const labels = Object.keys(countsByDate).sort();
+  const data = labels.map(date => countsByDate[date]);
+  return {
+    labels,
+    datasets: [
+      {
+        label: "Manual Interventions",
+        data,
+        borderColor: "#d32f2f",
+        backgroundColor: "#d32f2f33",
+        fill: true,
+        tension: 0.3
+      }
+    ]
+  };
+}
 
   return (
     <div style={styles.container}>
