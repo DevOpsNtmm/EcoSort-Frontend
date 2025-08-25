@@ -35,12 +35,12 @@ const Metrics = () => {
     let incorrect = 0;
 
     Object.entries(metrics.classification).forEach(([cls, data]) => {
-      const classTotal =
+      const classWithFeedback =
         data.correct +
         (data.wrong_as_paper || 0) +
         (data.wrong_as_plastic || 0) +
         (data.wrong_as_other || 0);
-      withFeedback += classTotal;
+      withFeedback += classWithFeedback;
       correct += data.correct;
       incorrect +=
         (data.wrong_as_paper || 0) +
@@ -118,57 +118,80 @@ const Metrics = () => {
           const data = metrics.classification[cls];
 
           // Calculate accuracy for this class
-          const totalWithFeedback =
+          const classTotal =
+            (data.confident || 0) +
             (data.correct || 0) +
             (data.wrong_as_paper || 0) +
             (data.wrong_as_plastic || 0) +
             (data.wrong_as_other || 0);
 
           const accuracy =
-            totalWithFeedback > 0
-              ? ((data.correct / totalWithFeedback) * 100).toFixed(1)
+            classTotal > 0
+              ? (((data.correct + data.confident) / classTotal) * 100).toFixed(1)
               : "—";
+
+          // Check if there's any data for this class
+          const hasData = classTotal > 0;
 
           // Pie chart labels, values, colors
           let labels, values, colors;
           if (cls === "paper") {
-            labels = ["Correct (Paper)", "Wrong as Plastic", "Wrong as Other"];
-            values = [data.correct, data.wrong_as_plastic, data.wrong_as_other];
+            labels = ["Correct", "Wrong as Plastic", "Wrong as Other"];
+            values = [data.correct + data.confident, data.wrong_as_plastic, data.wrong_as_other];
             colors = ["#4caf50", "#2196f3", "#ff9800"];
           } else if (cls === "plastic") {
-            labels = ["Correct (Plastic)", "Wrong as Paper", "Wrong as Other"];
-            values = [data.correct, data.wrong_as_paper, data.wrong_as_other];
+            labels = ["Correct", "Wrong as Paper", "Wrong as Other"];
+            values = [data.correct + data.confident, data.wrong_as_paper, data.wrong_as_other];
             colors = ["#2196f3", "#4caf50", "#ff9800"];
           } else {
-            labels = ["Correct (Other)", "Wrong as Paper", "Wrong as Plastic"];
-            values = [data.correct, data.wrong_as_paper, data.wrong_as_plastic];
+            labels = ["Correct", "Wrong as Paper", "Wrong as Plastic"];
+            values = [data.correct + data.confident, data.wrong_as_paper, data.wrong_as_plastic];
             colors = ["#ff9800", "#4caf50", "#2196f3"];
           }
 
           return (
             <div key={cls} style={{ width: 300, textAlign: "center" }}>
               <h3 style={{ textTransform: "capitalize", color: classColors[cls] }}>{cls}</h3>
-              <Pie
-                data={{
-                  labels,
-                  datasets: [
-                    {
-                      data: values,
-                      backgroundColor: colors,
-                    },
-                  ],
-                }}
-                options={{
-                  plugins: {
-                    legend: { position: "bottom" },
-                  },
-                }}
-              />
-              <div style={{ marginTop: 10 }}>
-                <div>
-                  <strong>Accuracy:</strong> {accuracy}%
+              
+              {hasData ? (
+                <>
+                  <Pie
+                    data={{
+                      labels,
+                      datasets: [
+                        {
+                          data: values,
+                          backgroundColor: colors,
+                        },
+                      ],
+                    }}
+                    options={{
+                      plugins: {
+                        legend: { position: "bottom" },
+                      },
+                    }}
+                  />
+                  <div style={{ marginTop: 10 }}>
+                    <div>
+                      <strong>Accuracy:</strong> {accuracy}%
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ 
+                  height: 200, 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center",
+                  backgroundColor: "#f5f5f5",
+                  borderRadius: "8px",
+                  border: "2px dashed #ccc"
+                }}>
+                  <div style={{ color: "#666", fontSize: "16px" }}>
+                    No data
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           );
         })}
