@@ -19,7 +19,6 @@ const Metrics = () => {
     fetch("http://localhost:5050/metrics/classification")
       .then((res) => res.json())
       .then((data) => {
-        console.log("metrics.samples", data.samples);
         setMetrics(data);
         setLoading(false);
       })
