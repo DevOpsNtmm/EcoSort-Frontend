@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Pie, Bar } from "react-chartjs-2";
-import { CategoryScale, LinearScale, BarElement, Chart, ArcElement, Tooltip, Legend } from "chart.js";
-Chart.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+import { Pie, Bar, Line } from "react-chartjs-2";
+import { CategoryScale, LinearScale, BarElement, Chart, ArcElement, Tooltip, Legend, LineElement, PointElement } from "chart.js";
+Chart.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement);
 
 const classNames = ["paper", "plastic", "other"];
 
@@ -84,6 +84,30 @@ const Metrics = () => {
       ]
     };
   }
+
+function getInterventionOverTimeData(samples) {
+  const interventions = samples.filter(s => Number(s.confidence_percentage) < 70 && s.timestamp);
+  const countsByDate = {};
+  interventions.forEach(s => {
+    const date = new Date(s.timestamp).toISOString().slice(0, 10);
+    countsByDate[date] = (countsByDate[date] || 0) + 1;
+  });
+  const labels = Object.keys(countsByDate).sort();
+  const data = labels.map(date => countsByDate[date]);
+  return {
+    labels,
+    datasets: [
+      {
+        label: "Manual Interventions",
+        data,
+        borderColor: "#d32f2f",
+        backgroundColor: "#d32f2f33",
+        fill: true,
+        tension: 0.3
+      }
+    ]
+  };
+}
 
   return (
     <div style={{ padding: 32 }}>
@@ -196,6 +220,18 @@ const Metrics = () => {
           );
         })}
       </div>
+      {metrics.samples && (
+        <div style={{ maxWidth: 400, margin: "40px auto" }}>
+          <h3 style={{ textAlign: "center" }}>Manual Interventions Over Time</h3>
+          <Line
+            data={getInterventionOverTimeData(metrics.samples)}
+            options={{
+              plugins: { legend: { display: true } },
+              scales: { y: { beginAtZero: true } }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
