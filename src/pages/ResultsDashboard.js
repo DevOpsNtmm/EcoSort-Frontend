@@ -11,6 +11,26 @@ const ResultsDashboard = () => {
   const [accuracyText, setAccuracyText] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const [availableModels, setAvailableModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
+  
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await fetch("http://localhost:5050/dashboard/models");
+        if (!response.ok) throw new Error("Failed to fetch models");
+        const data = await response.json();
+        setAvailableModels(data.models || []);
+        if (data.models && data.models.length > 0) {
+          setSelectedModel(data.models[0]); // default selection
+        }
+      } catch (error) {
+        console.error("Error fetching models:", error);
+      }
+    };
+    fetchModels();
+  }, []);
+
   useEffect(() => {
     const fetchResultsFromBackend = async () => {
       try {
@@ -47,6 +67,24 @@ const ResultsDashboard = () => {
     fetchResultsFromBackend();
   }, []);
 
+  const handleSwitchModel = async (modelName) => {
+    try {
+      const response = await fetch("http://localhost:5050/dashboard/switch_model", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model_name: modelName }),
+      });
+  
+      if (!response.ok) throw new Error("Failed to switch model");
+      const result = await response.json();
+      alert(result.message || `Switched to ${modelName}`);
+      setSelectedModel(modelName);
+    } catch (error) {
+      console.error("Error switching model:", error);
+      alert("Could not switch model");
+    }
+  };
+  
   const handleAccuracy = async () => {
     if (accuracyText) {
       setAccuracyText(null);
@@ -84,44 +122,53 @@ const ResultsDashboard = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Results Dashboard</h2>
+      {/* Top bar: title (left) + dropdown & menu (right) */}
+      <div style={styles.topBar}>
+        <h2 style={styles.title}>Results Dashboard</h2>
 
-      {/* Action Buttons */}
-      <div style={styles.buttonRow}>
-        <button onClick={handleAccuracy} style={styles.accuracyButton}>📊 Model Accuracy</button>
-        <div style={styles.menuContainer}>
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} style={styles.menuButton}>⋮</button>
-          {isMenuOpen && (
-            <div style={styles.menuDropdown}>
-              <button 
-                onClick={() => {
-                  setShowRetrainPopup(true);
-                  setIsMenuOpen(false);
-                }} 
-                style={styles.menuItem}
-              >
-                Retrain
-              </button>
-              <button 
-                onClick={() => {
-                  setShowPopup(true);
-                  setIsMenuOpen(false);
-                }} 
-                style={styles.menuItem}
-              >
-                Reset Model
-              </button>
-              <button 
-                onClick={() => {
-                  handleClear();
-                  setIsMenuOpen(false);
-                }} 
-                style={styles.deleteMenuItem}
-              >
-                Delete All
-              </button>
-            </div>
-          )}
+        <div style={styles.controls}>
+          {/* Accuracy Button */}
+          <button onClick={handleAccuracy} style={styles.accuracyButton}>
+            {accuracyText ? "Hide Accuracy" : "Show Accuracy"}
+          </button>
+          {/* Model Dropdown */}
+          <select
+            value={selectedModel}
+            onChange={(e) => handleSwitchModel(e.target.value)}
+            style={styles.dropdown}
+          >
+            {availableModels.map((model) => (
+              <option key={model} value={model}>
+                {model === "resnet50_recycling_adjusted.pth" ? "Original Model" : model}
+              </option>
+            ))}
+          </select>
+          {/* Menu */}
+          <div style={styles.menuContainer}>
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} style={styles.menuButton}>⋮</button>
+            {isMenuOpen && (
+              <div style={styles.menuDropdown}>
+                <button 
+                  onClick={() => {
+                    setShowRetrainPopup(true);
+                    setIsMenuOpen(false);
+                  }} 
+                  style={styles.menuItem}
+                >
+                  Retrain
+                </button>
+                <button 
+                  onClick={() => {
+                    handleClear();
+                    setIsMenuOpen(false);
+                  }} 
+                  style={styles.deleteMenuItem}
+                >
+                  Delete All
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -130,37 +177,6 @@ const ResultsDashboard = () => {
         <div style={styles.accuracyBox}>
           {accuracyText}
         </div>
-      )}
-
-      {/* Reset confirmation popup */}
-      {showPopup && (
-        <PopupConfirmation
-          title="Reset Model"
-          message="Are you sure you want to reset the model to default?"
-          onConfirm={async () => {
-            try {
-              const response = await fetch("http://localhost:5050/dashboard/default_model", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              });
-
-              const result = await response.json();
-
-              if (!response.ok) {
-                throw new Error(result.message || "Resetting to default model failed");
-              }
-
-              alert("Model reset to default successfully");
-              setShowPopup(false);
-            } catch (error) {
-              console.error(error);
-
-            } 
-          }}
-          onCancel={() => setShowPopup(false)}
-        />
       )}
 
 
@@ -177,6 +193,7 @@ const ResultsDashboard = () => {
           onConfirm={async () => {
             setIsRetraining(true);
             try {
+              console.log("Starting retrain request...");
               const response = await fetch("http://localhost:5050/dashboard/retrain", {
                 method: "POST",
                 headers: {
@@ -185,16 +202,51 @@ const ResultsDashboard = () => {
               });
 
               const result = await response.json();
+              console.log("Retrain response:", response.status, result);
 
               if (!response.ok) {
                 throw new Error(result.message || "Retraining failed");
               }
 
-              alert("Model retraining completed successfully.");
-            } catch (error) {
-              console.error(error);
+              // Prefer backend-provided new_model name if available
+              const newModelName = result && result.output_weights_path.new_model ? result.output_weights_path.new_model : null;
+              // Fetch updated model list from backend
+              console.log("Fetching updated models list...");
+              const modelsResp = await fetch("http://localhost:5050/dashboard/models");
+              let modelsList = [];
+              if (modelsResp.ok) {
+                const modelsJson = await modelsResp.json();
+                modelsList = modelsJson.models || [];
+                console.log("Updated models from server:", modelsList);
+                setAvailableModels(modelsList);
+              } else {
+                console.warn("Failed to fetch models list after retrain.", modelsResp.status);
+              }
 
-              if (error.message.includes("No new uncertain images found. Retraining aborted.")) {
+              // Decide which model to select:
+              if (newModelName) {
+                // If backend returned the new model name, select it (and add if missing)
+                setAvailableModels(prev => {
+                  const merged = Array.from(new Set([...(prev || []), newModelName]));
+                  return merged;
+                });
+                setSelectedModel(newModelName);
+                console.log("Selected new model (from retrain response):", newModelName);
+              } else if (modelsList.length > 0) {
+                // Otherwise pick the first model from the refreshed list (or keep current)
+                setSelectedModel(modelsList[0]);
+                console.log("Selected model from refreshed list:", modelsList[0]);
+              }
+
+              alert(
+                newModelName
+                  ? `Model retraining completed. Now using: ${newModelName}`
+                  : "Model retraining completed. Model list refreshed."
+              );
+            } catch (error) {
+              console.error("Retrain error:", error);
+
+              if (error.message && error.message.includes("No new uncertain images found. Retraining aborted.")) {
                 alert("No low-confidence images available for retraining.");
               } else {
                 alert("Internal server error during retraining. Please try again.");
@@ -207,6 +259,7 @@ const ResultsDashboard = () => {
           onCancel={() => setShowRetrainPopup(false)}
         />
       )}
+
 
       {/* Results Table */}
       <div style={{ overflowX: 'auto' }}>
@@ -328,8 +381,22 @@ const styles = {
     color: '#1565c0',
     fontSize: '20px',
     fontWeight: 'bold',
+    marginBottom: '0px',
+  },
+
+  /* NEW: header layout */
+  topBar: {
+    display: 'flex',
+    justifyContent: 'space-between', // title left, controls right
+    alignItems: 'center',
     marginBottom: '25px',
   },
+  controls: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+
   accuracyButton: {
     backgroundColor: '#ffffff',
     color: '#0d47a1',
@@ -452,6 +519,17 @@ const styles = {
     minWidth: '150px',
     zIndex: 1000,
   },
+  dropdown: {
+    marginRight: "10px",
+    padding: "6px 10px",
+    border: "1px solid #bbdefb",
+    borderRadius: "6px",
+    backgroundColor: "#ffffff",
+    color: "#0d47a1",
+    fontSize: "14px",
+    cursor: "pointer",
+  },
+  
   menuItem: {
     width: '100%',
     padding: '10px 16px',
