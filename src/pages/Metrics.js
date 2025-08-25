@@ -138,22 +138,40 @@ const Metrics = () => {
 function getInterventionOverTimeData(samples) {
   const interventions = samples.filter(s => Number(s.confidence_percentage) < 70 && s.timestamp);
   const countsByDate = {};
+  
   interventions.forEach(s => {
     const date = new Date(s.timestamp).toISOString().slice(0, 10);
     countsByDate[date] = (countsByDate[date] || 0) + 1;
   });
+  
   const labels = Object.keys(countsByDate).sort();
   const data = labels.map(date => countsByDate[date]);
+  
+  // Format dates for better readability
+  const formattedLabels = labels.map(date => {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  });
+  
   return {
-    labels,
+    labels: formattedLabels,
     datasets: [
       {
         label: "Manual Interventions",
         data,
-        borderColor: "#d32f2f",
-        backgroundColor: "#d32f2f33",
+        borderColor: "#ef4444",
+        backgroundColor: "rgba(239, 68, 68, 0.1)",
+        borderWidth: 3,
         fill: true,
-        tension: 0.3
+        tension: 0.4,
+        pointBackgroundColor: "#ef4444",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7
       }
     ]
   };
@@ -163,7 +181,10 @@ function getInterventionOverTimeData(samples) {
     <div style={styles.container}>
       {/* Header Section */}
       <div style={styles.header}>
-        <h1 style={styles.title}>📊 Analytics Dashboard</h1>
+        <h1 style={styles.title}>
+          <span style={styles.emoji}>📊</span>
+          <span style={styles.gradientText}>Analytics Dashboard</span>
+        </h1>
         <p style={styles.subtitle}>Comprehensive insights into your waste classification system</p>
       </div>
 
@@ -196,7 +217,7 @@ function getInterventionOverTimeData(samples) {
 
       {/* Bar Chart Section */}
       <div style={styles.chartSection}>
-        <h2 style={styles.sectionTitle}>📈 Performance Overview</h2>
+        <h2 style={styles.sectionTitle}>Performance Overview</h2>
         <div style={styles.chartContainer} className="chart-container">
           <Bar
             data={getStackedBarChartData(metrics)}
@@ -260,7 +281,7 @@ function getInterventionOverTimeData(samples) {
 
       {/* Pie Charts Section */}
       <div style={styles.chartSection}>
-        <h2 style={styles.sectionTitle}>🥧 Classification Breakdown</h2>
+        <h2 style={styles.sectionTitle}>Classification Breakdown</h2>
         <div style={styles.pieChartsGrid} className="pie-charts-grid">
           {classNames.map((cls) => {
             const data = metrics.classification[cls];
@@ -372,16 +393,71 @@ function getInterventionOverTimeData(samples) {
           })}
         </div>
       </div>
+      {/* Line Chart Section */}
       {metrics.samples && (
-        <div style={{ maxWidth: 400, margin: "40px auto" }}>
-          <h3 style={{ textAlign: "center" }}>Manual Interventions Over Time</h3>
-          <Line
-            data={getInterventionOverTimeData(metrics.samples)}
-            options={{
-              plugins: { legend: { display: true } },
-              scales: { y: { beginAtZero: true } }
-            }}
-          />
+        <div style={styles.chartSection}>
+          <h2 style={styles.sectionTitle}>Manual Interventions Over Time</h2>
+          <div style={styles.chartContainer} className="chart-container line-chart-container">
+            <Line
+              data={getInterventionOverTimeData(metrics.samples)}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { 
+                    display: true,
+                    position: 'top',
+                    labels: {
+                      usePointStyle: true,
+                      padding: 20,
+                      font: {
+                        size: 14,
+                        weight: '600'
+                      }
+                    }
+                  },
+                  title: {
+                    display: false
+                  }
+                },
+                scales: {
+                  x: { 
+                    grid: {
+                      color: 'rgba(0, 0, 0, 0.1)',
+                      drawBorder: false
+                    },
+                    ticks: {
+                      font: {
+                        size: 12
+                      }
+                    }
+                  },
+                  y: { 
+                    beginAtZero: true,
+                    grid: {
+                      color: 'rgba(0, 0, 0, 0.1)',
+                      drawBorder: false
+                    },
+                    ticks: {
+                      font: {
+                        size: 12
+                      }
+                    }
+                  }
+                },
+                elements: {
+                  line: {
+                    tension: 0.3
+                  },
+                  point: {
+                    radius: 4,
+                    hoverRadius: 6
+                  }
+                }
+              }}
+              height={400}
+            />
+          </div>
         </div>
       )}
     </div>
@@ -403,8 +479,17 @@ const styles = {
   title: {
     fontSize: '2.5rem',
     fontWeight: '700',
-    color: '#1e293b',
     margin: '0 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '16px'
+  },
+  emoji: {
+    fontSize: '2.5rem',
+    filter: 'none'
+  },
+  gradientText: {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
@@ -433,22 +518,6 @@ const styles = {
     gap: '20px',
     transition: 'all 0.3s ease',
     cursor: 'pointer'
-  },
-  metricCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: '16px',
-    padding: '32px 24px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    border: '1px solid rgba(0, 0, 0, 0.05)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '20px',
-    transition: 'all 0.3s ease',
-    cursor: 'pointer',
-    ':hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-    }
   },
   metricIcon: {
     fontSize: '2.5rem',
