@@ -100,7 +100,7 @@ const ResultsDashboard = () => {
   
       const data = await response.json();
       const percent = data.accuracy.toFixed(2);
-      setAccuracyText(`📈 System Accuracy: ${percent}%`);
+      setAccuracyText(`System Accuracy :      ${percent}%`);
     } catch (error) {
       console.error('Error fetching accuracy:', error);
       setAccuracyText('Error fetching accuracy.');
@@ -195,12 +195,10 @@ const ResultsDashboard = () => {
         </div>
       </div>
 
-      {/* Accuracy Display */}
+      {/* Accuracy Display */}  
       {accuracyText && (
         <div style={styles.accuracyBox} className="accuracy-box">
-          <div style={styles.accuracyIcon}>📈</div>
           <div style={styles.accuracyContent}>
-            <h3 style={styles.accuracyTitle}>System Performance</h3>
             <p style={styles.accuracyText}>{accuracyText}</p>
           </div>
         </div>
@@ -562,31 +560,18 @@ const styles = {
     alignItems: 'center',
     gap: '20px'
   },
-  accuracyIcon: {
-    fontSize: '2rem',
-    width: '48px',
-    height: '48px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f0f9ff',
-    borderRadius: '12px',
-    color: '#0ea5e9'
-  },
+
   accuracyContent: {
     flex: 1
   },
-  accuracyTitle: {
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: '#1e293b',
-    margin: '0 0 8px 0'
-  },
+
   accuracyText: {
-    fontSize: '1rem',
-    color: '#64748b',
+    fontSize: '1.125rem',
+    color: '#374151',
     margin: '0',
-    fontWeight: '500'
+    fontWeight: '500',
+    textAlign: 'center',
+    letterSpacing: '0.25px'
   },
   tableSection: {
     marginBottom: '32px'
