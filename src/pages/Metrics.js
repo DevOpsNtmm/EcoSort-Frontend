@@ -110,13 +110,58 @@ function getInterventionOverTimeData(samples) {
 }
 
   return (
-    <div style={{ padding: 32 }}>
-      <h2>📊 Metrics & Statistics</h2>
-      <ul>
-        <li>Total Samples: {metrics.total_samples}</li>
-        <li>Model Accuracy: {metrics.accuracy}%</li>
-        <li>Retrain Count: {metrics.retrain_count}</li>
-      </ul>
+    <div style={styles.container}>
+      {/* Header Section */}
+      <div style={styles.header}>
+        <h1 style={styles.title}>
+          <span style={styles.emoji}>📊</span>
+          <span style={styles.gradientText}>Analytics Dashboard</span>
+        </h1>
+        <p style={styles.subtitle}>Comprehensive insights into your waste classification system</p>
+      </div>
+
+      {/* Key Metrics Cards */}
+      <div style={styles.metricsGrid} className="metrics-grid">
+        <div style={styles.metricCard} className="metric-card">
+          <div style={styles.metricIcon}>📦</div>
+          <div style={styles.metricContent}>
+            <h3 style={styles.metricValue}>{metrics.total_samples}</h3>
+            <p style={styles.metricLabel}>Total Samples</p>
+          </div>
+        </div>
+        
+        <div style={styles.metricCard} className="metric-card">
+          <div style={styles.metricIcon}>🎯</div>
+          <div style={styles.metricContent}>
+            <h3 style={{...styles.metricValue, color: accuracyColor}}>{overallAccuracy}%</h3>
+            <p style={styles.metricLabel}>Model Accuracy</p>
+          </div>
+        </div>
+        
+        <div style={styles.metricCard} className="metric-card">
+          <div style={styles.metricIcon}>🔄</div>
+          <div style={styles.metricContent}>
+            <h3 style={styles.metricValue}>{metrics.retrain_count}</h3>
+            <p style={styles.metricLabel}>Retrain Count</p>
+          </div>
+        </div>
+        
+        <div style={styles.metricCard} className="metric-card">
+          <div style={styles.metricIcon}>🔒</div>
+          <div style={styles.metricContent}>
+            <h3 style={styles.metricValue}>
+              {(() => {
+                let highConfidence = 0;
+                Object.entries(metrics.classification).forEach(([cls, data]) => {
+                  highConfidence += data.confident || 0;
+                });
+                return highConfidence;
+              })()}
+            </h3>
+            <p style={styles.metricLabel}>High Confidence</p>
+          </div>
+        </div>
+      </div>
 
       {/* Bar Chart Section */}
       <div style={{ maxWidth: 600, margin: "40px auto" }}>
