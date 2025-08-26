@@ -1,19 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext} from 'react';
+import { UNSAFE_NavigationContext } from 'react-router-dom';
 import PopupConfirmation from '../components/PopupConfirmation';
 
 const ResultsDashboard = () => {
   const [modalImage, setModalImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [results, setResults] = useState([]);
-  const [showPopup, setShowPopup] = useState(false);
   const [showRetrainPopup, setShowRetrainPopup] = useState(false);
   const [isRetraining, setIsRetraining] = useState(false);
   const [accuracyText, setAccuracyText] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const [blockMessageVisible, setBlockMessageVisible] = useState(false);
   const [availableModels, setAvailableModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState("");
-  
+
+  useBlocker(() => {
+    if (isRetraining) {
+      setBlockMessageVisible(true);
+      setTimeout(() => setBlockMessageVisible(false), 3000); // auto-hide after 3s
+      return false; // prevent navigation
+    }
+    return true; // allow navigation
+  }, true);
+
   useEffect(() => {
     const fetchModels = async () => {
       try {
@@ -334,6 +343,11 @@ const ResultsDashboard = () => {
           </div>
         </div>
       )}
+      {blockMessageVisible && (
+        <div style={styles.blockBanner}>
+          ⚠️ Please wait until the retrain ends.
+        </div>
+      )}
     </div>
   );
 };
@@ -485,6 +499,19 @@ const styles = {
     textDecoration: 'none',
     fontWeight: 'bold',
   },
+  blockBanner: {
+    position: 'fixed',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: '#ff9800',
+    color: '#000',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    zIndex: 1000,
+    fontWeight: 'bold',
+  },
   centerButton: {
     position: 'absolute',
     left: '50%',
@@ -559,5 +586,25 @@ const styles = {
     },
   },
 };
+function useBlocker(blocker, when = true) {
+  const navigator = useContext(UNSAFE_NavigationContext).navigator;
+
+  useEffect(() => {
+    if (!when) return;
+
+    const push = navigator.push;
+
+    navigator.push = (...args) => {
+      const result = blocker();
+      if (result !== false) {
+        push.apply(navigator, args);
+      }
+    };
+
+    return () => {
+      navigator.push = push;
+    };
+  }, [blocker, when, navigator]);
+}
 
 export default ResultsDashboard;
