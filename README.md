@@ -63,6 +63,10 @@ Follow these steps to set up the project locally:
    ```bash
    npm start
 
+4. The Frontend is designed to work with the EcoSort Backend. Ensure the backend is configured to communicate with the frontend server. https://github.com/BenBashi/EcoSort-Backend-Server
+
+
+
 ### ⁠ npm start ⁠
 
 Runs the app in the development mode.\
