@@ -42,7 +42,7 @@
 
 Follow these steps to set up the project locally:
 
-1.⁠ ⁠*Clone the Repository*:
+1.⁠ ⁠Clone the Repository:
    ⁠ bash
    git clone https://github.com/your-username/EcoSort-Frontend.git
    cd EcoSort-Frontend
