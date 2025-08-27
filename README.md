@@ -47,7 +47,9 @@ Follow these steps to set up the project locally:
    git clone https://github.com/your-username/EcoSort-Frontend.git
    cd EcoSort-Frontend
 
-2. run 
+2. Setup an .env file with PORT variable
+
+3. run 
    ```bash
    npm install
 
@@ -58,7 +60,7 @@ Follow these steps to set up the project locally:
 ### ⁠ npm start ⁠
 
 Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Open [http://localhost:<PORT>](http://localhost:<PORT>) to view it in your browser.
 
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
