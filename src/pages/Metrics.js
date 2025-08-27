@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Pie, Bar, Doughnut, Line } from "react-chartjs-2";
+import { useEffect, useState } from "react";
+import {Bar, Doughnut, Line } from "react-chartjs-2";
 import "./Metrics.css";
 import { 
   CategoryScale, 
@@ -30,12 +30,6 @@ const classColors = {
   paper: "#10b981",    // emerald-500
   plastic: "#3b82f6",  // blue-500
   other: "#f59e0b"     // amber-500
-};
-
-const classGradients = {
-  paper: ["#10b981", "#059669", "#047857"],
-  plastic: ["#3b82f6", "#2563eb", "#1d4ed8"],
-  other: ["#f59e0b", "#d97706", "#b45309"]
 };
 
 const Metrics = () => {

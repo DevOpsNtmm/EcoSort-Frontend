@@ -2,10 +2,6 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { UNSAFE_NavigationContext } from 'react-router-dom';
 
 function Home() {
-  const [counter, setCounter] = useState(() => {
-    const stored = localStorage.getItem('counter');
-    return stored ? parseInt(stored, 10) : 1;
-  });
   const intervalRef = useRef(null);
   const stoppedRef = useRef(false);
   const PREDICTION_INTERVAL_MS = 250;
@@ -20,7 +16,6 @@ function Home() {
   const [confidence, setConfidence] = useState(null);
   const [trueClass, setTrueClass] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
-  const [fileName, setFileName] = useState('');
 
   useBlocker(() => {
     if (isRunning) {
@@ -82,7 +77,6 @@ function Home() {
       const data = await response.json();
       if (!response.ok) throw new Error(`Backend error: ${data.error || 'Unknown error'}`);
       setSystemAnalysis(data.label);
-      setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
       setConfidence(confidenceValue);
       setItemNumber(data.inserted_id || null);
