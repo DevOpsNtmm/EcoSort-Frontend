@@ -6,12 +6,10 @@ function Home() {
     const stored = localStorage.getItem('counter');
     return stored ? parseInt(stored, 10) : 1;
   });
-
   const intervalRef = useRef(null);
   const stoppedRef = useRef(false);
   const PREDICTION_INTERVAL_MS = 250;
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 
   const [blockMessageVisible, setBlockMessageVisible] = useState(false);
   const [dropdownDisabled, setDropdownDisabled] = useState(false);
@@ -24,17 +22,15 @@ function Home() {
   const [capturedImage, setCapturedImage] = useState(null);
   const [fileName, setFileName] = useState('');
 
-  // Block navigation if the system is running
   useBlocker(() => {
     if (isRunning) {
       setBlockMessageVisible(true);
-      setTimeout(() => setBlockMessageVisible(false), 3000); // auto-hide after 3s
-      return false; // prevent navigation
+      setTimeout(() => setBlockMessageVisible(false), 3000);
+      return false;
     }
-    return true; // allow navigation
+    return true;
   }, true);
 
-  // Prevent page refresh or close when the system is running
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       if (isRunning) {
@@ -43,16 +39,14 @@ function Home() {
         return message;
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [isRunning]);
 
   const runPredictionLoop = async () => {
-    if (stoppedRef.current) return; // Prevent running if stopped
+    if (stoppedRef.current) return;
     await captureAndPredict();
   };
 
@@ -62,68 +56,50 @@ function Home() {
       try {
         const response = await fetch('http://localhost:5050/home/system_start', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to notify backend.');
-        }
-
+        if (!response.ok) throw new Error('Failed to notify backend.');
         console.log('System start notified successfully.');
       } catch (error) {
         console.error('Error starting system:', error);
       }
-
       setIsRunning(true);
       setTrueClass('');
       await sleep(PREDICTION_INTERVAL_MS);
-      if (stoppedRef.current) return;  // Prevent running if stopped during sleep
+      if (stoppedRef.current) return;
       runPredictionLoop();
     }
   };
 
   const captureAndPredict = async () => {
-    if (stoppedRef.current) return; // Prevent running if stopped
-
+    if (stoppedRef.current) return;
     console.log('Running prediction...');
     try {
       const response = await fetch('http://localhost:5050/home/evaluate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(`Backend error: ${data.error || 'Unknown error'}`);
-      }
+      if (!response.ok) throw new Error(`Backend error: ${data.error || 'Unknown error'}`);
       setSystemAnalysis(data.label);
       setFileName(data.image_name);
       const confidenceValue = parseFloat(data.confidence);
       setConfidence(confidenceValue);
       setItemNumber(data.inserted_id || null);
       setCapturedImage(`http://localhost:5050/images/${encodeURIComponent(data.image_name)}`);
-
-      console.log(`Label: ${data.label}, Confidence: ${confidenceValue}`)
+      console.log(`Label: ${data.label}, Confidence: ${confidenceValue}`);
       if (confidenceValue < 70 && data.label !== "Track") {
-          pausePrediction();
-      }
-      else {
+        pausePrediction();
+      } else {
         if (!stoppedRef.current) {
           const timeoutId = setTimeout(captureAndPredict, PREDICTION_INTERVAL_MS);
           intervalRef.current = timeoutId;
         }
       }
-
     } catch (error) {
       console.error('Error capturing and predicting:', error);
     }
   };
-
 
   const pausePrediction = () => {
     clearTimeout(intervalRef.current);
@@ -138,90 +114,56 @@ function Home() {
       alert('⚠️ Please select a classification before saving.');
       return;
     }
-
     try {
       const response = await fetch(`http://localhost:5050/dashboard/results/${itemNumber}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          trueClass,
-          systemAnalysis,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trueClass, systemAnalysis }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update: ${response.statusText}`);
-      }
-
+      if (!response.ok) throw new Error(`Failed to update: ${response.statusText}`);
     } catch (error) {
       console.error('Error updating true class:', error);
     }
-
     setDropdownDisabled(true);
     setShowSavedMessage(true);
     handleStart(false);
     setTimeout(() => setShowSavedMessage(false), 1000);
-
     try {
       const response = await fetch(`http://localhost:5050/home/servo_push`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          trueClass,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trueClass }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to call servo: ${response.statusText}`);
-      }
-
+      if (!response.ok) throw new Error(`Failed to call servo: ${response.statusText}`);
     } catch (error) {
       console.error('Error calling servo endpoint:', error);
     }
-
     await fetch(`http://localhost:5050/dashboard/copy_uncertain/${itemNumber}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ trueClass }),
     });
-
     setTrueClass('');
-
   };
 
   const handleStop = async (isRunning, paused) => {
     stoppedRef.current = true;
-
     if (intervalRef.current) {
       clearTimeout(intervalRef.current);
       intervalRef.current = null;
     }
-
     if (isRunning) {
       try {
         const response = await fetch('http://localhost:5050/home/system_stop', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to notify backend.');
-        }
-
+        if (!response.ok) throw new Error('Failed to notify backend.');
         console.log('System stop notified successfully.');
       } catch (error) {
         console.error('Error stopping system:', error);
       }
-
-      if (!paused) {
-        setIsRunning(false);
-      }
+      if (!paused) setIsRunning(false);
     }
   };
 
@@ -231,10 +173,10 @@ function Home() {
 
       {!isRunning ? (
         <button onClick={() => handleStart(false)} style={styles.startButton}>▶ Start Classification</button>
-        
       ) : (
         <div style={styles.resultSection}>
           <div style={styles.card}>
+            {/* Always show the image if captured */}
             {capturedImage && (
               <img
                 src={capturedImage}
@@ -243,16 +185,23 @@ function Home() {
               />
             )}
 
+            {/* Show prediction/confidence for every image */}
             {itemNumber !== null ? (
               <>
-                <p><strong>Prediction:</strong> {systemAnalysis}</p>
-                <p><strong>Confidence:</strong> {confidence !== null ? `${confidence}%` : '—'}</p>
+                <p>
+                  <strong>Prediction:</strong>{" "}
+                  {systemAnalysis === "Track" ? "—" : systemAnalysis}
+                </p>
+                <p>
+                  <strong>Confidence:</strong>{" "}
+                  {confidence !== null ? `${confidence}%` : "—"}
+                </p>
                 {showSavedMessage && (
-                  <p style={{ color: '#2e7d32', marginTop: '10px' }}>✔️ Saved!</p>
+                  <p style={{ color: "#2e7d32", marginTop: "10px" }}>✔️ Saved!</p>
                 )}
                 {confidence !== null && confidence < 70 && (
-                  <div style={{ marginTop: '10px' }}>
-                    <p style={{ color: '#d32f2f' }}>
+                  <div style={{ marginTop: "10px" }}>
+                    <p style={{ color: "#d32f2f" }}>
                       ⚠️ Low confidence. Please classify manually:
                     </p>
                     <select
@@ -274,11 +223,15 @@ function Home() {
                 )}
               </>
             ) : (
-              <p style={{ marginTop: '10px', color: '#888' }}>⏳ Waiting for next prediction…</p>
+              <p style={{ marginTop: "10px", color: "#888" }}>
+                ⏳ Waiting for next prediction…
+              </p>
             )}
           </div>
 
-          <button onClick={() => handleStop(true, false)} style={styles.stopButton}>⏹ Stop & Save</button>
+          <button onClick={() => handleStop(true, false)} style={styles.stopButton}>
+            ⏹ Stop & Save
+          </button>
         </div>
       )}
       {blockMessageVisible && (
@@ -382,23 +335,19 @@ const styles = {
 
 function useBlocker(blocker, when = true) {
   const navigator = useContext(UNSAFE_NavigationContext).navigator;
-
   useEffect(() => {
     if (!when) return;
-
     const push = navigator.push;
-
     navigator.push = (...args) => {
       const result = blocker();
       if (result !== false) {
         push.apply(navigator, args);
       }
     };
-
     return () => {
       navigator.push = push;
     };
   }, [blocker, when, navigator]);
 }
 
-export default Home;
+export default Home;  
