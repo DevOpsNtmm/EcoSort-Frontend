@@ -7,14 +7,12 @@
 ## Table of Contents
 
 •⁠  ⁠[Features](#features)
+
 •⁠  ⁠[Technologies Used](#technologies-used)
+
 •⁠  ⁠[Setup and Installation](#setup-and-installation)
-•⁠  ⁠[Folder Structure](#folder-structure)
-•⁠  ⁠[Available Scripts](#available-scripts)
-•⁠  ⁠[Environment Variables](#environment-variables)
+
 •⁠  ⁠[Usage](#usage)
-•⁠  ⁠[Contributing](#contributing)
-•⁠  ⁠[License](#license)
 
 ---
 
