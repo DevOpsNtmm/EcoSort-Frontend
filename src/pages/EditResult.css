@@ -1,0 +1,141 @@
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Main card hover effects */
+.main-card {
+  transition: all 0.3s ease;
+}
+
+.main-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Image preview hover effects */
+.image-preview {
+  transition: transform 0.2s ease;
+}
+
+.image-preview:hover {
+  transform: scale(1.02);
+}
+
+/* Form select hover and focus effects */
+.form-select {
+  transition: all 0.2s ease;
+}
+
+.form-select:hover {
+  border-color: #3b82f6 !important;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Button hover effects */
+.cancel-button {
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background-color: #f9fafb !important;
+  border-color: #d1d5db !important;
+  transform: translateY(-1px);
+}
+
+.save-button {
+  transition: all 0.2s ease;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: #059669 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.save-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.back-button {
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Confidence bar animation */
+.confidence-display {
+  transition: all 0.3s ease;
+}
+
+.confidence-display:hover {
+  transform: scale(1.02);
+}
+
+/* Section transitions */
+.image-section,
+.form-section,
+.action-section {
+  transition: all 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .main-card {
+    border-radius: 12px;
+  }
+  
+  .image-section,
+  .form-section,
+  .action-section {
+    padding: 24px;
+  }
+  
+  .action-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .image-section,
+  .form-section,
+  .action-section {
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .section-title {
+    font-size: 1.125rem;
+  }
+  
+  .select,
+  .readonly-input {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+}

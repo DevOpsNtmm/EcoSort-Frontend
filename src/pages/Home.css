@@ -1,0 +1,224 @@
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Start card hover effects */
+.start-card {
+  transition: all 0.3s ease;
+}
+
+.start-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Button hover effects */
+.start-button {
+  transition: all 0.2s ease;
+}
+
+.start-button:hover {
+  background-color: #059669 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.stop-button {
+  transition: all 0.2s ease;
+}
+
+.stop-button:hover {
+  background-color: #dc2626 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.manual-save-button {
+  transition: all 0.2s ease;
+}
+
+.manual-save-button:hover:not(:disabled) {
+  background-color: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.manual-save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Card hover effects */
+.status-card,
+.results-card,
+.waiting-card {
+  transition: all 0.3s ease;
+}
+
+.status-card:hover,
+.results-card:hover,
+.waiting-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Image hover effects */
+.captured-image {
+  transition: transform 0.2s ease;
+}
+
+.captured-image:hover {
+  transform: scale(1.02);
+}
+
+/* Form dropdown hover and focus effects */
+.classification-dropdown {
+  transition: all 0.2s ease;
+}
+
+.classification-dropdown:hover {
+  border-color: #3b82f6 !important;
+}
+
+.classification-dropdown:focus {
+  outline: none;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Confidence bar animation */
+.confidence-display {
+  transition: all 0.3s ease;
+}
+
+.confidence-display:hover {
+  transform: scale(1.02);
+}
+
+/* Success message animation */
+.success-message {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Low confidence section hover effects */
+.low-confidence-section {
+  transition: all 0.3s ease;
+}
+
+.low-confidence-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Block banner animation */
+.block-banner {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Status icon animation */
+.status-icon {
+  animation: spin 2s linear infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .start-card {
+    padding: 32px 24px;
+    border-radius: 16px;
+  }
+  
+  .status-card,
+  .results-card,
+  .waiting-card {
+    padding: 20px;
+    border-radius: 12px;
+  }
+  
+  .title {
+    font-size: 2.5rem;
+  }
+  
+  .start-title {
+    font-size: 1.5rem;
+  }
+  
+  .prediction-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .confidence-display {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .start-card {
+    padding: 24px 20px;
+  }
+  
+  .status-card,
+  .results-card,
+  .waiting-card {
+    padding: 16px;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .start-title {
+    font-size: 1.25rem;
+  }
+  
+  .start-description {
+    font-size: 1rem;
+  }
+  
+  .start-button {
+    padding: 14px 24px;
+    font-size: 1rem;
+  }
+  
+  .classification-dropdown {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .manual-save-button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
