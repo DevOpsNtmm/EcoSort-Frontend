@@ -650,22 +650,26 @@ const styles = {
     transform: 'translateX(-50%)',
   emptyStateContent: {
     textAlign: 'center'
+  }
   },
   emptyStateIcon: {
     fontSize: '3rem',
     marginBottom: '16px',
-    opacity: '0.5'
+    opacity: '0.5',
+    textAlign: 'center'
   },
   emptyStateTitle: {
     fontSize: '1.25rem',
     fontWeight: '600',
     color: '#374151',
-    margin: '0 0 8px 0'
+    margin: '0 0 8px 0',
+    textAlign: 'center'
   },
   emptyStateText: {
     fontSize: '1rem',
     color: '#64748b',
-    margin: '0'
+    margin: '0',
+    textAlign: 'center'
   },
   imageThumb: {
     width: '80px',
