@@ -46,7 +46,9 @@ Follow these steps to set up the project locally:
    ⁠ bash
    git clone https://github.com/your-username/EcoSort-Frontend.git
    cd EcoSort-Frontend
+
 2. run 'npm install'
+
 3. run 'npm start'
 
 ### ⁠ npm start ⁠
