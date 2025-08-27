@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext} from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { UNSAFE_NavigationContext } from 'react-router-dom';
 import PopupConfirmation from '../components/PopupConfirmation';
 import './ResultsDashboard.css';
@@ -31,8 +31,13 @@ const ResultsDashboard = () => {
         if (!response.ok) throw new Error("Failed to fetch models");
         const data = await response.json();
         setAvailableModels(data.models || []);
-        if (data.models && data.models.length > 0) {
-          setSelectedModel(data.models[0]); // default selection
+
+        // Check if a model is saved in localStorage
+        const savedModel = localStorage.getItem("selectedModel");
+        if (savedModel && data.models.includes(savedModel)) {
+          setSelectedModel(savedModel); // Use the saved model
+        } else if (data.models && data.models.length > 0) {
+          setSelectedModel(data.models[0]); // Default to the first model
         }
       } catch (error) {
         console.error("Error fetching models:", error);
@@ -40,7 +45,6 @@ const ResultsDashboard = () => {
     };
     fetchModels();
   }, []);
-
   useEffect(() => {
     const fetchResultsFromBackend = async () => {
       try {
@@ -84,11 +88,14 @@ const ResultsDashboard = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model_name: modelName }),
       });
-  
+
       if (!response.ok) throw new Error("Failed to switch model");
       const result = await response.json();
       alert(result.message || `Switched to ${modelName}`);
       setSelectedModel(modelName);
+
+      // Save the selected model to localStorage
+      localStorage.setItem("selectedModel", modelName);
     } catch (error) {
       console.error("Error switching model:", error);
       alert("Could not switch model");
