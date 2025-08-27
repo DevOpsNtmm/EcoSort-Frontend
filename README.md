@@ -21,9 +21,13 @@
 ## Features
 
 •⁠  ⁠*Real-time Waste Classification*: Displays predictions and confidence levels for waste items.
+
 •⁠  ⁠*Model Management*: Allows users to switch between available machine learning models.
+
 •⁠  ⁠*Retraining*: Enables retraining of models with low-confidence classifications.
+
 •⁠  ⁠*Results Dashboard*: View and manage classification results, including editing and clearing data.
+
 •⁠  ⁠*Interactive UI*: Includes modals, dropdowns, and popups for a seamless user experience.
 
 ---
@@ -31,9 +35,13 @@
 ## Technologies Used
 
 •⁠  ⁠*React*: Frontend framework for building the user interface.
+
 •⁠  ⁠*React Router*: For navigation and route management.
+
 •⁠  ⁠*CSS*: Custom styles for a clean and modern design.
+
 •⁠  ⁠*Fetch API*: For making HTTP requests to the backend.
+
 •⁠  ⁠*LocalStorage*: For persisting user preferences (e.g., selected model).
 
 ---
