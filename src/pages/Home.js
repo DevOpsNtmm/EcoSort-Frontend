@@ -121,8 +121,13 @@ function Home() {
     }
     setDropdownDisabled(true);
     setShowSavedMessage(true);
-    handleStart(false);
-    setTimeout(() => setShowSavedMessage(false), 1000);
+    
+    // Add delay before starting new classification to show results longer
+    setTimeout(() => {
+      handleStart(false);
+      setShowSavedMessage(false);
+    }, 2000); // 2 seconds delay instead of immediate
+    
     try {
       const response = await fetch(`http://localhost:5050/home/servo_push`, {
         method: "POST",
@@ -240,6 +245,12 @@ function Home() {
                         Please classify this item manually to improve accuracy
                       </p>
                       
+                      {/* Confidence Level Indicator */}
+                      <div style={styles.confidenceIndicator}>
+                        <span style={styles.confidenceLabel}>Current Confidence:</span>
+                        <span style={styles.lowConfidenceValue}>{confidence}%</span>
+                      </div>
+                      
                       <div style={styles.manualClassification}>
                         <select
                           value={trueClass}
@@ -249,14 +260,14 @@ function Home() {
                           className="classification-dropdown"
                         >
                           <option value="">-- Select Classification --</option>
-                          <option value="Paper">📄 Paper</option>
-                          <option value="Plastic">🥤 Plastic</option>
-                          <option value="Other">📦 Other</option>
-                          <option value="Track">❌ None</option>
+                          <option value="Paper">Paper</option>
+                          <option value="Plastic">Plastic</option>
+                          <option value="Other">Other</option>
+                          <option value="Track">None</option>
                         </select>
                         
                         <button onClick={handleManualSave} style={styles.manualSaveButton} className="manual-save-button">
-                          💾 Save Manual Classification
+                          Save Manual Classification
                         </button>
                       </div>
                     </div>
@@ -461,10 +472,11 @@ const styles = {
   },
   lowConfidenceSection: {
     backgroundColor: '#fef2f2',
-    border: '1px solid #fecaca',
+    border: '2px solid #fca5a5',
     borderRadius: '16px',
     padding: '24px',
-    marginTop: '24px'
+    marginTop: '24px',
+    boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.1)'
   },
   warningHeader: {
     display: 'flex',
@@ -485,6 +497,26 @@ const styles = {
     color: '#7f1d1d',
     margin: '0 0 20px 0',
     lineHeight: '1.5'
+  },
+  confidenceIndicator: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '20px',
+    padding: '12px 16px',
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    border: '1px solid #fecaca'
+  },
+  confidenceLabel: {
+    fontSize: '1rem',
+    fontWeight: '500',
+    color: '#374151'
+  },
+  lowConfidenceValue: {
+    fontSize: '1.25rem',
+    fontWeight: '700',
+    color: '#dc2626'
   },
   manualClassification: {
     display: 'flex',
