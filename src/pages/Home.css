@@ -3,6 +3,11 @@
   100% { transform: rotate(360deg); }
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* Start card hover effects */
 .start-card {
   transition: all 0.3s ease;
@@ -11,6 +16,24 @@
 .start-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Status card hover effects */
+.status-card {
+  transition: all 0.3s ease;
+}
+
+.status-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Results card hover effects */
+.results-card {
+  transition: all 0.3s ease;
+}
+
+.results-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Button hover effects */
@@ -49,29 +72,7 @@
   cursor: not-allowed;
 }
 
-/* Card hover effects */
-.status-card,
-.results-card,
-.waiting-card {
-  transition: all 0.3s ease;
-}
-
-.status-card:hover,
-.results-card:hover,
-.waiting-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Image hover effects */
-.captured-image {
-  transition: transform 0.2s ease;
-}
-
-.captured-image:hover {
-  transform: scale(1.02);
-}
-
-/* Form dropdown hover and focus effects */
+/* Dropdown hover and focus effects */
 .classification-dropdown {
   transition: all 0.2s ease;
 }
@@ -86,39 +87,13 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Confidence bar animation */
-.confidence-display {
-  transition: all 0.3s ease;
+/* Image hover effects */
+.captured-image {
+  transition: transform 0.2s ease;
 }
 
-.confidence-display:hover {
+.captured-image:hover {
   transform: scale(1.02);
-}
-
-/* Success message animation */
-.success-message {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from { 
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Low confidence section hover effects */
-.low-confidence-section {
-  transition: all 0.3s ease;
-}
-
-.low-confidence-section:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 /* Block banner animation */
@@ -137,9 +112,42 @@
   }
 }
 
-/* Status icon animation */
-.status-icon {
-  animation: spin 2s linear infinite;
+/* Confidence bar animation */
+.confidence-display {
+  transition: all 0.3s ease;
+}
+
+.confidence-display:hover {
+  transform: scale(1.05);
+}
+
+/* Result row hover effects */
+.result-row {
+  transition: all 0.2s ease;
+}
+
+.result-row:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Success message animation */
+.success-message {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Low confidence section hover effects */
+.low-confidence-section {
+  transition: all 0.3s ease;
+}
+
+.low-confidence-section:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive adjustments */
@@ -148,35 +156,42 @@
     padding: 16px;
   }
   
+  .start-card,
+  .status-card,
+  .results-card {
+    border-radius: 12px;
+  }
+  
   .start-card {
     padding: 32px 24px;
-    border-radius: 16px;
   }
   
   .status-card,
-  .results-card,
-  .waiting-card {
+  .results-card {
     padding: 20px;
-    border-radius: 12px;
   }
   
   .title {
     font-size: 2.5rem;
   }
   
-  .start-title {
+  .startTitle {
     font-size: 1.5rem;
   }
   
-  .prediction-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .resultsTitle {
+    font-size: 1.25rem;
   }
   
-  .confidence-display {
+  .statusHeader {
+    flex-direction: column;
+    gap: '16px';
+    align-items: stretch;
+  }
+  
+  .stop-button {
     width: 100%;
-    max-width: 200px;
+    justify-content: center;
   }
 }
 
@@ -190,8 +205,7 @@
   }
   
   .status-card,
-  .results-card,
-  .waiting-card {
+  .results-card {
     padding: 16px;
   }
   
@@ -199,26 +213,31 @@
     font-size: 2rem;
   }
   
-  .start-title {
+  .startTitle {
     font-size: 1.25rem;
   }
   
-  .start-description {
+  .startDescription {
     font-size: 1rem;
   }
   
-  .start-button {
+  .startButton {
     padding: 14px 24px;
     font-size: 1rem;
   }
   
-  .classification-dropdown {
-    padding: 10px 14px;
-    font-size: 14px;
+  .image {
+    max-height: 200px;
   }
   
-  .manual-save-button {
-    padding: 10px 20px;
-    font-size: 14px;
+  .resultRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .confidenceDisplay {
+    width: 100%;
+    max-width: 120px;
   }
 }

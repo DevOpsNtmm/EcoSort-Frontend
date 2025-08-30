@@ -79,7 +79,7 @@ function getStackedBarChartData(metrics) {
       (data.wrong_as_plastic || 0) +
       (data.wrong_as_other || 0);
     withFeedback += classWithFeedback;
-    correct += data.correct;
+    correct += data.correct + data.confident;
     incorrect +=
       (data.wrong_as_paper || 0) +
       (data.wrong_as_plastic || 0) +
