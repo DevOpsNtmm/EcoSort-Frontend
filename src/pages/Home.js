@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { UNSAFE_NavigationContext } from 'react-router-dom';
+import './Home.css';
 
 function Home() {
   const intervalRef = useRef(null);
@@ -162,75 +163,125 @@ function Home() {
   };
 
   return (
-    <div style={styles.page}>
-      <h2 style={styles.title}>♻️ EcoSort | Smart Trash Classifier</h2>
+    <div style={styles.container}>
+      {/* Header Section */}
+      <div style={styles.header}>
+        <h1 style={styles.title}>
+          <span style={styles.emoji}>♻️</span>
+          <span style={styles.gradientText}>EcoSort</span>
+        </h1>
+        <p style={styles.subtitle}>Smart Trash Classification System</p>
+      </div>
 
-      {!isRunning ? (
-        <button onClick={() => handleStart(false)} style={styles.startButton}>▶ Start Classification</button>
-      ) : (
-        <div style={styles.resultSection}>
-          <div style={styles.card}>
-            {/* Always show the image if captured */}
-            {capturedImage && (
-              <img
-                src={capturedImage}
-                alt="Captured item"
-                style={styles.image}
-              />
-            )}
-
-            {/* Show prediction/confidence for every image */}
-            {itemNumber !== null ? (
-              <>
-                <p>
-                  <strong>Prediction:</strong>{" "}
-                  {systemAnalysis === "Track" ? "—" : systemAnalysis}
-                </p>
-                <p>
-                  <strong>Confidence:</strong>{" "}
-                  {confidence !== null ? `${confidence}%` : "—"}
-                </p>
-                {showSavedMessage && (
-                  <p style={{ color: "#2e7d32", marginTop: "10px" }}>✔️ Saved!</p>
-                )}
-                {confidence !== null && confidence < 70 && (
-                  <div style={{ marginTop: "10px" }}>
-                    <p style={{ color: "#d32f2f" }}>
-                      ⚠️ Low confidence. Please classify manually:
-                    </p>
-                    <select
-                      value={trueClass}
-                      onChange={(e) => setTrueClass(e.target.value)}
-                      disabled={dropdownDisabled}
-                      style={styles.dropdown}
-                    >
-                      <option value="">-- Select Type --</option>
-                      <option value="Paper">Paper</option>
-                      <option value="Plastic">Plastic</option>
-                      <option value="Other">Other</option>
-                      <option value="Track">None</option>
-                    </select>
-                    <button onClick={handleManualSave} style={styles.manualSaveButton}>
-                      💾 Save Manual Class
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p style={{ marginTop: "10px", color: "#888" }}>
-                ⏳ Waiting for next prediction…
+      {/* Main Content */}
+      <div style={styles.mainContent}>
+        {!isRunning ? (
+          <div style={styles.startSection}>
+            <div style={styles.startCard} className="start-card">
+              <h2 style={styles.startTitle}>Ready to Start</h2>
+              <p style={styles.startDescription}>
+                Click the button below to begin automatic waste classification
               </p>
-            )}
+              <button onClick={() => handleStart(false)} style={styles.startButton} className="start-button">
+                ▶ Start Classification
+              </button>
+            </div>
           </div>
+        ) : (
+          <div style={styles.resultSection}>
+            <div style={styles.resultCard} className="result-card">
+              
+              {/* Image Display */}
+              {capturedImage && (
+                <div style={styles.imageSection}>
+                  <img
+                    src={capturedImage}
+                    alt="Captured item"
+                    style={styles.image}
+                    className="captured-image"
+                  />
+                </div>
+              )}
 
-          <button onClick={() => handleStop(true, false)} style={styles.stopButton}>
-            ⏹ Stop & Save
-          </button>
-        </div>
-      )}
+              {/* Prediction Results */}
+              {itemNumber !== null ? (
+                <div style={styles.predictionSection}>
+                  <div style={styles.predictionRow}>
+                    <div style={styles.predictionItem}>
+                      <span style={styles.predictionLabel}>🎯 Prediction:</span>
+                      <span style={styles.predictionValue}>
+                        {systemAnalysis === "Track" ? "—" : systemAnalysis}
+                      </span>
+                    </div>
+                    <div style={styles.predictionItem}>
+                      <span style={styles.predictionLabel}>📊 Confidence:</span>
+                      <span style={styles.confidenceValue}>
+                        {confidence !== null ? `${confidence}%` : "—"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Success Message */}
+                  {showSavedMessage && (
+                    <div style={styles.successMessage}>
+                      <span style={styles.successIcon}>✅</span>
+                      <span style={styles.successText}>Classification saved successfully!</span>
+                    </div>
+                  )}
+
+                  {/* Low Confidence Handling */}
+                  {confidence !== null && confidence < 70 && (
+                    <div style={styles.lowConfidenceSection}>
+                      <div style={styles.warningHeader}>
+                        <span style={styles.warningIcon}>⚠️</span>
+                        <span style={styles.warningText}>Low confidence detected</span>
+                      </div>
+                      <p style={styles.warningDescription}>
+                        Please classify this item manually to improve accuracy
+                      </p>
+                      
+                      <div style={styles.manualClassification}>
+                        <select
+                          value={trueClass}
+                          onChange={(e) => setTrueClass(e.target.value)}
+                          disabled={dropdownDisabled}
+                          style={styles.dropdown}
+                          className="classification-dropdown"
+                        >
+                          <option value="">-- Select Classification --</option>
+                          <option value="Paper">📄 Paper</option>
+                          <option value="Plastic">🥤 Plastic</option>
+                          <option value="Other">📦 Other</option>
+                          <option value="Track">❌ None</option>
+                        </select>
+                        
+                        <button onClick={handleManualSave} style={styles.manualSaveButton} className="manual-save-button">
+                          💾 Save Manual Classification
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={styles.waitingSection}>
+                  <div style={styles.waitingIcon}>⏳</div>
+                  <p style={styles.waitingText}>Waiting for next prediction...</p>
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => handleStop(true, false)} style={styles.stopButton} className="stop-button">
+              ⏹ Stop & Save
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation Warning Banner */}
       {blockMessageVisible && (
-        <div style={styles.blockBanner}>
-          ⚠️ Please stop the classification before navigating away.
+        <div style={styles.blockBanner} className="block-banner">
+          <span style={styles.bannerIcon}>⚠️</span>
+          <span style={styles.bannerText}>Please stop the classification before navigating away.</span>
         </div>
       )}
     </div>
@@ -238,93 +289,287 @@ function Home() {
 }
 
 const styles = {
-  page: {
-    padding: '40px 20px',
-    minHeight: '100vh',
-    backgroundColor: '#f5f7fa',
-    fontFamily: 'Roboto, Arial, sans-serif',
-    textAlign: 'center',
+  container: {
+    padding: '32px',
+    maxWidth: '1000px',
+    margin: '0 auto',
+    backgroundColor: '#f8fafc',
+    minHeight: '100vh'
   },
-  manualSaveButton: {
-    marginTop: '15px',
-    backgroundColor: '#0288d1',
-    color: '#fff',
-    padding: '10px 18px',
-    fontSize: '14px',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    display: 'block',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    transition: 'background-color 0.3s ease',
+  header: {
+    textAlign: 'center',
+    marginBottom: '48px'
   },
   title: {
-    fontSize: '28px',
-    color: '#1976d2',
-    marginBottom: '30px',
+    fontSize: '3rem',
+    fontWeight: '700',
+    margin: '0 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '16px'
   },
-  startButton: {
-    backgroundColor: '#43a047',
-    color: '#fff',
-    padding: '15px 35px',
-    fontSize: '18px',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
+  emoji: {
+    fontSize: '3rem',
+    filter: 'none'
   },
-  stopButton: {
-    backgroundColor: '#e53935',
-    color: '#fff',
-    padding: '12px 30px',
-    fontSize: '16px',
-    borderRadius: '6px',
-    border: 'none',
-    marginTop: '20px',
-    cursor: 'pointer',
+  gradientText: {
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text'
   },
-  resultSection: {
+  subtitle: {
+    fontSize: '1.25rem',
+    color: '#64748b',
+    margin: '0',
+    fontWeight: '500'
+  },
+  mainContent: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '25px',
+    gap: '32px'
   },
-  blockBanner: {
-    position: 'fixed',
-    top: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    backgroundColor: '#ff9800',
-    color: '#000',
-    padding: '10px 20px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    zIndex: 1000,
-    fontWeight: 'bold',
+  startSection: {
+    width: '100%',
+    maxWidth: '500px'
   },
-  card: {
-    width: '320px',
+  startCard: {
     backgroundColor: '#ffffff',
-    borderRadius: '10px',
-    padding: '20px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    textAlign: 'left',
+    borderRadius: '20px',
+    padding: '48px 32px',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
+    textAlign: 'center',
+    transition: 'all 0.3s ease'
+  },
+  startIcon: {
+    fontSize: '4rem',
+    marginBottom: '24px',
+    display: 'block'
+  },
+  startTitle: {
+    fontSize: '1.75rem',
+    fontWeight: '600',
+    color: '#1e293b',
+    margin: '0 0 16px 0'
+  },
+  startDescription: {
+    fontSize: '1.125rem',
+    color: '#64748b',
+    margin: '0 0 32px 0',
+    lineHeight: '1.6'
+  },
+  startButton: {
+    backgroundColor: '#10b981',
+    color: '#ffffff',
+    border: 'none',
+    padding: '18px 40px',
+    fontSize: '1.125rem',
+    fontWeight: '600',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px'
+  },
+  resultSection: {
+    width: '100%',
+    maxWidth: '600px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '24px'
+  },
+  resultCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: '20px',
+    padding: '32px',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
+    width: '100%'
+  },
+  resultTitle: {
+    fontSize: '1.5rem',
+    fontWeight: '600',
+    color: '#1e293b',
+    margin: '0 0 24px 0',
+    textAlign: 'center'
+  },
+  imageSection: {
+    textAlign: 'center',
+    marginBottom: '24px'
   },
   image: {
-    width: '100%',
-    height: '160px',
-    borderRadius: '6px',
-    marginBottom: '15px',
-    objectFit: 'cover',
+    maxWidth: '100%',
+    maxHeight: '300px',
+    height: 'auto',
+    borderRadius: '16px',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    transition: 'transform 0.2s ease'
+  },
+  predictionSection: {
+    marginBottom: '24px'
+  },
+  predictionRow: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '20px',
+    marginBottom: '24px'
+  },
+  predictionItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px'
+  },
+  predictionLabel: {
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em'
+  },
+  predictionValue: {
+    fontSize: '1.25rem',
+    fontWeight: '700',
+    color: '#1e293b'
+  },
+  confidenceValue: {
+    fontSize: '1.25rem',
+    fontWeight: '700',
+    color: '#10b981'
+  },
+  successMessage: {
+    backgroundColor: '#dcfce7',
+    border: '1px solid #bbf7d0',
+    borderRadius: '12px',
+    padding: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '24px'
+  },
+  successIcon: {
+    fontSize: '1.25rem'
+  },
+  successText: {
+    fontSize: '1rem',
+    fontWeight: '600',
+    color: '#166534'
+  },
+  lowConfidenceSection: {
+    backgroundColor: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: '16px',
+    padding: '24px',
+    marginTop: '24px'
+  },
+  warningHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '12px'
+  },
+  warningIcon: {
+    fontSize: '1.5rem'
+  },
+  warningText: {
+    fontSize: '1.125rem',
+    fontWeight: '600',
+    color: '#dc2626'
+  },
+  warningDescription: {
+    fontSize: '1rem',
+    color: '#7f1d1d',
+    margin: '0 0 20px 0',
+    lineHeight: '1.5'
+  },
+  manualClassification: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
   },
   dropdown: {
     width: '100%',
-    padding: '10px',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-    marginTop: '10px',
+    padding: '14px 16px',
+    fontSize: '16px',
+    borderRadius: '8px',
+    border: '2px solid #e5e7eb',
+    backgroundColor: '#ffffff',
+    color: '#374151',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
   },
+  manualSaveButton: {
+    backgroundColor: '#3b82f6',
+    color: '#ffffff',
+    border: 'none',
+    padding: '14px 24px',
+    fontSize: '16px',
+    fontWeight: '600',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px'
+  },
+  waitingSection: {
+    textAlign: 'center',
+    padding: '40px 20px'
+  },
+  waitingIcon: {
+    fontSize: '3rem',
+    marginBottom: '16px',
+    opacity: '0.6'
+  },
+  waitingText: {
+    fontSize: '1.125rem',
+    color: '#64748b',
+    margin: '0',
+    fontWeight: '500'
+  },
+  stopButton: {
+    backgroundColor: '#ef4444',
+    color: '#ffffff',
+    border: 'none',
+    padding: '16px 32px',
+    fontSize: '16px',
+    fontWeight: '600',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  },
+  blockBanner: {
+    position: 'fixed',
+    top: '24px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: '#f59e0b',
+    color: '#92400e',
+    padding: '16px 24px',
+    borderRadius: '12px',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    zIndex: 1000,
+    fontWeight: '600',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    maxWidth: '90vw',
+    textAlign: 'center'
+  },
+  bannerIcon: {
+    fontSize: '1.25rem'
+  },
+  bannerText: {
+    fontSize: '1rem'
+  }
 };
 
 function useBlocker(blocker, when = true) {

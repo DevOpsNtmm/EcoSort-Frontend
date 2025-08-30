@@ -13,56 +13,27 @@
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Button hover effects */
+/* Start button hover effects */
 .start-button {
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .start-button:hover {
   background-color: #059669 !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.stop-button {
-  transition: all 0.2s ease;
-}
-
-.stop-button:hover {
-  background-color: #dc2626 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.manual-save-button {
-  transition: all 0.2s ease;
-}
-
-.manual-save-button:hover:not(:disabled) {
-  background-color: #2563eb !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.manual-save-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Card hover effects */
-.status-card,
-.results-card,
-.waiting-card {
-  transition: all 0.3s ease;
-}
-
-.status-card:hover,
-.results-card:hover,
-.waiting-card:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Image hover effects */
+/* Result card hover effects */
+.result-card {
+  transition: all 0.3s ease;
+}
+
+.result-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Captured image hover effects */
 .captured-image {
   transition: transform 0.2s ease;
 }
@@ -71,7 +42,7 @@
   transform: scale(1.02);
 }
 
-/* Form dropdown hover and focus effects */
+/* Classification dropdown hover and focus effects */
 .classification-dropdown {
   transition: all 0.2s ease;
 }
@@ -86,42 +57,29 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Confidence bar animation */
-.confidence-display {
+/* Manual save button hover effects */
+.manual-save-button {
+  transition: all 0.2s ease;
+}
+
+.manual-save-button:hover {
+  background-color: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Stop button hover effects */
+.stop-button {
   transition: all 0.3s ease;
 }
 
-.confidence-display:hover {
-  transform: scale(1.02);
-}
-
-/* Success message animation */
-.success-message {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from { 
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Low confidence section hover effects */
-.low-confidence-section {
-  transition: all 0.3s ease;
-}
-
-.low-confidence-section:hover {
+.stop-button:hover {
+  background-color: #dc2626 !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Block banner animation */
+/* Block banner animations */
 .block-banner {
   animation: slideDown 0.3s ease-out;
 }
@@ -137,9 +95,34 @@
   }
 }
 
-/* Status icon animation */
-.status-icon {
-  animation: spin 2s linear infinite;
+/* Success message animations */
+.success-message {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Low confidence section animations */
+.low-confidence-section {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Waiting section animations */
+.waiting-section {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 /* Responsive adjustments */
@@ -148,16 +131,22 @@
     padding: 16px;
   }
   
-  .start-card {
-    padding: 32px 24px;
+  .start-card,
+  .result-card {
     border-radius: 16px;
   }
   
-  .status-card,
-  .results-card,
-  .waiting-card {
-    padding: 20px;
-    border-radius: 12px;
+  .start-card {
+    padding: 32px 24px;
+  }
+  
+  .result-card {
+    padding: 24px;
+  }
+  
+  .prediction-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
   
   .title {
@@ -168,15 +157,8 @@
     font-size: 1.5rem;
   }
   
-  .prediction-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .confidence-display {
-    width: 100%;
-    max-width: 200px;
+  .result-title {
+    font-size: 1.25rem;
   }
 }
 
@@ -189,10 +171,19 @@
     padding: 24px 20px;
   }
   
-  .status-card,
-  .results-card,
-  .waiting-card {
-    padding: 16px;
+  .result-card {
+    padding: 20px;
+  }
+  
+  .start-button,
+  .stop-button {
+    padding: 14px 24px;
+    font-size: 1rem;
+  }
+  
+  .manual-save-button {
+    padding: 12px 20px;
+    font-size: 14px;
   }
   
   .title {
@@ -203,22 +194,8 @@
     font-size: 1.25rem;
   }
   
-  .start-description {
-    font-size: 1rem;
-  }
-  
-  .start-button {
-    padding: 14px 24px;
-    font-size: 1rem;
-  }
-  
-  .classification-dropdown {
-    padding: 10px 14px;
-    font-size: 14px;
-  }
-  
-  .manual-save-button {
-    padding: 10px 20px;
+  .block-banner {
+    padding: 12px 16px;
     font-size: 14px;
   }
 }
