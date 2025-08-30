@@ -62,6 +62,13 @@ const EditResult = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      if (systemAnalysis !== trueClass) {
+        await fetch(`http://localhost:5050/dashboard/copy_uncertain/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trueClass })
+        });
+      }
       localStorage.setItem('results', JSON.stringify(updated));
       navigate('/dashboard');
     } catch (error) {
