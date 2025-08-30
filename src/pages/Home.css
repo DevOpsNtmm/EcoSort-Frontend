@@ -89,7 +89,7 @@
 
 /* Image hover effects */
 .captured-image {
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
 }
 
 .captured-image:hover {
@@ -123,7 +123,7 @@
 
 /* Result row hover effects */
 .result-row {
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .result-row:hover {
