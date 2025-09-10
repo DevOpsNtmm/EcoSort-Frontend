@@ -66,6 +66,71 @@ const Metrics = () => {
     );
   }
 
+function getConfusionMatrix(metrics) {
+  const matrix = {
+    paper: { paper: 0, plastic: 0, other: 0 },
+    plastic: { paper: 0, plastic: 0, other: 0 },
+    other: { paper: 0, plastic: 0, other: 0 }
+  };
+
+  Object.entries(metrics.classification).forEach(([actualClass, data]) => {
+    // Count correct predictions (both confident and correct)
+    matrix[actualClass][actualClass] = (data.correct || 0) + (data.confident || 0);
+    
+    // Count incorrect predictions
+    if (actualClass === 'paper') {
+      matrix[actualClass].plastic = data.wrong_as_plastic || 0;
+      matrix[actualClass].other = data.wrong_as_other || 0;
+    } else if (actualClass === 'plastic') {
+      matrix[actualClass].paper = data.wrong_as_paper || 0;
+      matrix[actualClass].other = data.wrong_as_other || 0;
+    } else if (actualClass === 'other') {
+      matrix[actualClass].paper = data.wrong_as_paper || 0;
+      matrix[actualClass].plastic = data.wrong_as_plastic || 0;
+    }
+
+    // Add misclassifications from other classes
+    Object.entries(metrics.classification).forEach(([otherClass, otherData]) => {
+      if (otherClass !== actualClass) {
+        const wrongKey = `wrong_as_${actualClass}`;
+        if (otherData[wrongKey]) {
+          matrix[otherClass][actualClass] = otherData[wrongKey];
+        }
+      }
+    });
+  });
+
+  return matrix;
+}
+
+function getF1Score(metrics, className) {
+  const { precision, recall } = getPrecisionRecall(metrics, className);
+  if (precision === "—" || recall === "—") return "—";
+  
+  const p = parseFloat(precision);
+  const r = parseFloat(recall);
+  return ((2 * p * r) / (p + r)).toFixed(1);
+}
+
+function getPrecisionRecall(metrics, className) {
+  const data = metrics.classification[className];
+  if (!data) return { precision: "—", recall: "—" };
+  const TP = (data.correct || 0) + (data.confident || 0);
+  let FP = 0;
+  Object.entries(metrics.classification).forEach(([cls, d]) => {
+    if (cls !== className) {
+      FP += d[`wrong_as_${className}`] || 0;
+    }
+  });
+  const FN = (data.wrong_as_paper || 0) + (data.wrong_as_plastic || 0) + (data.wrong_as_other || 0);
+  // Precision: TP / (TP + FP)
+  // Recall: TP / (TP + FN)
+  const precision = TP + FP > 0 ? ((TP / (TP + FP)) * 100).toFixed(1) : "—";
+  const recall = TP + FN > 0 ? ((TP / (TP + FN)) * 100).toFixed(1) : "—";
+
+  return { precision, recall };
+}
+
 function getStackedBarChartData(metrics) {
   const totalSamples = metrics.total_samples || 0;
   let withFeedback = 0;
@@ -288,13 +353,14 @@ function getInterventionOverTimeData(samples) {
           />
         </div>
       </div>
-
+      
       {/* Pie Charts Section */}
       <div style={styles.chartSection}>
         <h2 style={styles.sectionTitle}>Classification Breakdown</h2>
         <div style={styles.pieChartsGrid} className="pie-charts-grid">
           {classNames.map((cls) => {
             const data = metrics.classification[cls];
+            const { precision, recall } = getPrecisionRecall(metrics, cls);
 
             // Calculate accuracy for this class
             const classTotal =
@@ -398,6 +464,14 @@ function getInterventionOverTimeData(samples) {
                     <p style={styles.noDataText}>No data available</p>
                   </div>
                 )}
+                <div style={{ marginTop: 18, textAlign: "center" }}>
+                  <span style={{ fontWeight: 600, color: classColors[cls] }}>
+                    Precision: {precision}%
+                  </span>
+                  <span style={{ marginLeft: 24, fontWeight: 600, color: classColors[cls] }}>
+                    Recall: {recall}%
+                  </span>
+                </div>
               </div>
             );
           })}
@@ -470,11 +544,99 @@ function getInterventionOverTimeData(samples) {
           </div>
         </div>
       )}
+
+      <div style={styles.chartSection}>
+        <h2 style={styles.sectionTitle}>Advanced Metrics</h2>
+        
+        {/* F1 Scores Cards */}
+        <div style={styles.metricsGrid}>
+          {classNames.map(cls => (
+            <div key={cls} style={styles.metricCard} className="metric-card">
+              <div style={styles.metricIcon}>🎯</div>
+              <div style={styles.metricContent}>
+                <h3 style={{...styles.metricValue, color: classColors[cls]}}>
+                  {getF1Score(metrics, cls)}%
+                </h3>
+                <p style={styles.metricLabel}>{cls.toUpperCase()} F1 Score</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Confusion Matrix */}
+        <div style={{...styles.chartContainer, marginTop: '32px', height: 'auto'}}>
+          <div style={styles.matrixContainer}>
+            <table style={styles.matrixTable}>
+              <thead>
+                <tr>
+                  <th style={styles.matrixHeader}>Actual ↓ / Predicted →</th>
+                  {classNames.map(cls => (
+                    <th key={cls} style={styles.matrixHeader}>
+                      {cls.toUpperCase()}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {classNames.map(actualClass => {
+                  const matrix = getConfusionMatrix(metrics);
+                  return (
+                    <tr key={actualClass}>
+                      <td style={styles.matrixHeader}>{actualClass.toUpperCase()}</td>
+                      {classNames.map(predictedClass => (
+                        <td 
+                          key={predictedClass} 
+                          style={{
+                            ...styles.matrixCell,
+                            backgroundColor: actualClass === predictedClass ? 
+                              'rgba(16, 185, 129, 0.1)' : 'transparent',
+                            color: actualClass === predictedClass ? 
+                              '#059669' : '#64748b'
+                          }}
+                        >
+                          {matrix[actualClass][predictedClass]}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 const styles = {
+  matrixContainer: {
+    overflowX: 'auto',
+    padding: '16px'
+  },
+  matrixTable: {
+    width: '100%',
+    borderCollapse: 'separate',
+    borderSpacing: '8px',
+    textAlign: 'center'
+  },
+  matrixHeader: {
+    padding: '12px',
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    color: '#1e293b',
+    backgroundColor: '#f1f5f9',
+    borderRadius: '8px'
+  },
+  matrixCell: {
+    padding: '16px',
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    border: '1px solid #e2e8f0',
+    minWidth: '100px'
+  },
   container: {
     padding: '32px',
     maxWidth: '1400px',
